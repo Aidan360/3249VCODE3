@@ -30,10 +30,10 @@ void initialize() {
 	pros::lcd::set_text(1, "Hello PROS User!");
 
 	pros::lcd::register_btn1_cb(on_center_button);
-	pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
-	pros::Motor leftBackMotor_initializer (leftBackMotor_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
-	pros::Motor rightFrontMotor_initializer (rightFrontMotor_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
-	pros::Motor rightBackMotor_initializer (rightBackMotor_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
+	pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
+	pros::Motor leftBackMotor_initializer (leftBackMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
+	pros::Motor rightFrontMotor_initializer (rightFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
+	pros::Motor rightBackMotor_initializer (rightBackMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
 }
 
 /**
@@ -87,15 +87,15 @@ void opcontrol() {
 	pros::Motor rightFrontMotor (rightFrontMotor_PORT);
 	pros::Motor rightBackMotor (rightBackMotor_PORT); 
 
-	int curve = 0.75;
-	int left;
-	int right;
-	int power;
-	int turn;
+	float curve = 0.75;
+	float left;
+	float right;
+	float power;
+	float turn;
 	while (true) {
 
-		power = master.get_analog(ANALOG_LEFT_Y);
-		turn = master.get_analog(ANALOG_RIGHT_Y);
+		power = controller1.get_analog(ANALOG_LEFT_Y);
+		turn = controller1.get_analog(ANALOG_RIGHT_Y);
 		left = power + turn;
 		right = power - turn;
 		leftFrontMotor.move(100*(((1-curve)*left)/100+(curve*pow(left/100,7)))); // Conners Move 

@@ -2,15 +2,15 @@
 #include "api.h"
 
 // Smart ports
-#define leftFrontMotor_PORT 1;
-#define leftBackMotor_PORT 2;
-#define rightFrontMotor_PORT 3;
-#define rightBackMotor_PORT 4;
-#define flyWheel_PORT 5;
-#define turretMotor_PORT 6;
-#define intakeMotor_PORT 7;
+#define leftFrontMotor_PORT 1
+#define leftBackMotor_PORT 2
+#define rightFrontMotor_PORT 3
+#define rightBackMotor_PORT 4
+#define flyWheel_PORT 5
+#define turretMotor_PORT 6
+#define intakeMotor_PORT 7
 //#define eigthMotorPort 8;
-#define expander_PORT 9;
+#define expander_PORT 9
 // Brain 3-Wire Ports
 #define potentiometer_PORT 1;
 #define expansionPneumatic_Port 2;
