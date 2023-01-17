@@ -38,8 +38,11 @@ void odometryThread(void) {
     double encoderLV = 0;
     double encoderRV = 0;
     double encoderBV = 0;
+    while(true) {
+    diffrence = encoderLV - encoderRV;        
+    }
+    
 
-    diffrence = encoderLV - encoderRV;
 
 
 
