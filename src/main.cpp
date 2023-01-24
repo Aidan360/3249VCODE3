@@ -1,21 +1,168 @@
 #include "main.h"
 #include "config.h"
-#include "odom.h"
-/**
- * A callback function for LLEMU's center button.
- *
- * When this callback is fired, it will toggle line 2 of the LCD text between
- * "I was pressed!" and nothing.
- */
-void on_center_button() {
-	static bool pressed = false;
-	pressed = !pressed;
-	if (pressed) {
-		pros::lcd::set_text(2, "I was pressed!");
-	} else {
-		pros::lcd::clear_line(2);
-	}
+//#include "odom.h"
+
+// Begin project code
+/* TODO:
+Get the robots current velocity either in odom loop or somewhere else
+Create movement safezones. (Autonomous line and potentially the low goal L)
+Have the ability to switch
+*/
+/* Odometry */
+// PROGRAM USES RADIANS
+double degHead; // in degrees
+double lastdegHead;
+double turretHeading; // in degrees
+double turretError;
+bool turretBreak;
+float turretThreashold = 3;
+float turretOffsetZ = 11.5; // turret offset height from ground so it can properly aim
+float distanceFromCorners; // Needs calibration
+int discLoad;
+bool intakeDisc;
+bool turretDisc;
+bool flyWheelDisc;
+// Starting Offsets is how far the sensor is away from the walls or 0,0 on a grid
+double startingOffsetX;
+double startingOffsetY;
+// Grid is for marking objects and where they are
+double positionX;
+double positionY;
+double velocityX;
+double velocityY;
+double rotVelocity;
+// blue near the red high goal and red is near the blue high goal  0,0 is the bottom RIGHT of the feild
+// Object coordinates for object locations from 0,0 in inchesf
+// for saftey it can be if X = Y and autonmous = true then break?
+float middleLineX1 = 0;
+float middleLineX2 = 140.02;
+float middleLineY1 = 0;
+float middleLineXY = 140.02;
+/* Arrays */
+/* Id's for Locations
+0 = X 1 = Y
+0: Blue Ramp
+1: Red Ramp
+2: North Roller
+3: West Roller
+4: East Roller
+5: South Roller
+6: Blue Goal
+7: Red Goal
+*/
+float coordinateLocations[2][8] {
+{0,140.2,110.98,139,29.43,1,122.63,17.78},
+{72.20,72.20,139,110.98,1,29.43,17.78,122.63}
+};
+/* Id's for goal Height
+0: Lowest Goal point
+1: Centered Goal point
+2: Highest Goal point
+*/
+float zCoordinates[3] {25,30.5,35.5};
+/* Id's for Odometry offsets
+0 = distance
+1 = angle
+0:Left Odom Wheel
+1:Right Odom Wheel
+2:Back Odom Wheel
+*/
+float offsets[3] {1.53,1.73,8.72};// THIS NEEDS CALIBRATION ONCE ODOMETRY WHEELS ARE IN THE ROBOT < ------------------------------------------------------------
+// Low Z and High Z is for aiming. EX if Turret aim is between Zlow < Yangle < ZHigh then Fire
+
+
+
+
+/*Launch Math*/
+
+
+
+
+double flyWheelMass = 0.49; // pounds (m)
+double flyWheelRadius = 2; // inches (r)
+double flyWheelCrossArea = M_PI*2*2; // inches (A)
+double flyWheelCompression = 0.15; // inches (l)
+double flyWheelAngle = 45; // angle in degrees (a)
+double flyWheelGearRatio = 18; // multipler for gearing
+// Compression Force (F=E*A*l)/r
+double flyWheelCompressionForce = (flyWheelCrossArea*flyWheelCompression)/(flyWheelRadius*2); // (f)
+// Inertia Calc, m*r^2
+double discInertia = 0.121254*pow(5.5/2,2); // i_disc
+double flyWheelInertia = flyWheelRadius*pow(2,2); // i_wheel
+// Inertial increase from Compression i_delta = (F*r^2)/(3*E)
+double flyWheelInertialIncrease = (flyWheelCompressionForce*pow((flyWheelRadius*2),2))/(3); // i_wheelDelta
+
+
+
+
+/* Display */
+bool thread1On = false;
+bool thread2On = false;
+bool thread3On = false;
+bool thread4On = false;
+bool compReady = false;
+// Misc
+float gameTime = 105;
+int null = 0;
+int target;
+bool activePID;
+float dragWheelDiamater = 2.630; // drag wheel radius
+double dragWheelCirc = dragWheelDiamater*M_PI;
+double gravity = -386.08858267717; // inches per second
+/* Calculations */
+double findAngle(int selector, double x = 0) { // selector uses coordniate list
+//m=(y2-y1)/(x2-x1) slope formula
+x = (180/M_PI)/(atan((positionY - coordinateLocations[1][selector])/(positionX - coordinateLocations[0][selector])));
+return(x);
 }
+double findAngleMove(double X,double Y,double dest = 0) { // in degrees NOT radains
+dest = (180/M_PI)*(atan((Y - positionY)/( X- positionX)));
+return(dest);
+}
+double findDistance(double X1, double Y1, double X2, double Y2, double dist = 0) {
+dist = sqrt(pow(Y2-Y1,2)+pow(X2-X1,2));
+return(dist );
+}
+// misc
+double abs(double n) {
+if (n <= 0) {
+  n =+ n*-1;
+}
+return(n);
+}
+
+
+double radians(double deg, double x = 0) {
+x = (deg * (M_PI / 180));
+return(x);
+}
+/* Threads */
+/* How to make threads
+void thread1() {
+int threadLoopCount = 0;
+while(true) {
+Brain.Screen.setCursor(2, 1);
+Brain.Screen.print("Thread #1 Iterations (250ms loop): %d", threadLoopCount);
+threadLoopCount += 1;
+wait(250, msec);
+}
+}
+thread myThread1 = thread(thread1); // how to execute in code
+*/
+bool redTeam = true;
+bool aimBot = true;
+bool autoFire = true;
+bool lockOn = false;
+float distfeet;
+
+
+
+
+
+
+
+
+
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -24,16 +171,390 @@ void on_center_button() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	
-	
-	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello PROS User!");
 
-	pros::lcd::register_btn1_cb(on_center_button);
 	pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
 	pros::Motor leftBackMotor_initializer (leftBackMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
 	pros::Motor rightFrontMotor_initializer (rightFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
 	pros::Motor rightBackMotor_initializer (rightBackMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
+	pros::Motor turretMotor_initializer (turretMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
+	pros::lcd::initialize();
+	pros::lcd::set_text(1, "Hello PROS User!");
+
+}
+
+
+
+int turretPID() {
+	pros::Motor turretMotor (turretMotor_PORT);
+double factorP = 0.05;
+double factorI = 0.001;
+double factorD = 0.25;
+double error = 0;
+double intergral = 0;
+double derivitave = 0;
+double lastError = 1;
+double fixing = 0;
+double errorAverage = error;
+double lastErrorAverage = 0;
+double loopCount = 0;
+activePID = true;
+while (abs(error) >= 0) {
+    error = (turretHeading - turretError);
+    intergral = intergral + error;
+    derivitave = error - lastError;
+    fixing = (error*factorP)+(intergral*factorI)+(derivitave*factorD);
+  if (turretError > 180) {
+    turretMotor.setVelocity(fixing,rpm);
+  }
+  else {
+    turretMotor.setVelocity(-fixing,rpm);
+  }
+    turretMotor.move;
+    lastError = error;
+    wait(1.5,msec);
+    error = turretHeading - turretError;
+    errorAverage = (errorAverage+error+lastError)/3;
+    loopCount += 1;
+  if (loopCount > 75) { // This is so previous larger errors don't break the infinite loop fix
+    lastErrorAverage = errorAverage;
+    errorAverage = 0;
+  }
+  if (turretBreak == true) {
+    break;
+  }
+}
+activePID = false;
+turretMotor.stop();
+return(1);
+}
+//Autonomous functions
+void movePiD(double X, double Y) {
+double factorP = 0.5;
+double factorI = 0.001;
+double factorD = 0.25;
+double error = 12/*findDistance(positionX,positionY,X,Y)*/;
+double proportional = 0;
+double intergral = 0;
+double derivitave = 0;
+double lastError = error;
+double fixing = 0;
+double errorAverage = error;
+double lastErrorAverage = 0;
+double loopCount = 0;
+while (abs(error) >= 0) {
+  /*if ((abs(lastErrorAverage) - 0.01) < (abs(lastError) < (abs(lastErrorAverage) + 0.01))) { // preventing infinite correct loop
+  break;
+  } */
+  proportional = error*factorP;
+  intergral = intergral + error;
+  derivitave = error - lastError;
+  fixing = proportional+(intergral*factorI)+(derivitave*factorD);
+  leftFrontMotor.setVelocity(fixing,rpm);
+  leftBackMotor.setVelocity(fixing,rpm);
+  rightFrontMotor.setVelocity(fixing,rpm);
+  rightBackMotor.setVelocity(fixing,rpm);
+  leftFrontMotor.spin(forward);
+  leftBackMotor.spin(forward);
+  rightFrontMotor.spin(reverse);
+  rightBackMotor.spin(reverse);
+  lastError = error;
+  wait(1.5,msec);
+  error = findDistance(positionX,positionY,X,Y);
+  errorAverage = (errorAverage+error+lastError)/3;
+  loopCount += 1;
+  if (loopCount > 75) { // This is so previous larger errors don't break the infinite loop fix
+    lastErrorAverage = errorAverage;
+    errorAverage = 0;
+  }
+}
+leftFrontMotor.stop();
+leftBackMotor.stop();
+rightFrontMotor.stop();
+rightBackMotor.stop();
+}
+void turnPiD(double degr) {
+double factorP = 0.625;
+double factorI = 0.005;
+double factorD = 0.25;
+double error = degHead - degr;
+double intergral = 0;
+double derivitave = 0;
+double pError = 1;
+double fixing = 0;
+double errorAverage = 0;
+double pErrorAverage = 0;
+double loopCount = 0;
+while (abs(error) <= 0) {
+  if ((abs(pErrorAverage) - 0.01) < (abs(pError) < (abs(pErrorAverage) + 0.01))) { // preventing infinite correct loop
+    break;
+  }
+  intergral = intergral + error;
+  derivitave = error - pError;
+  fixing = (error*factorP)+(intergral*factorI)+(derivitave*factorD);
+  if (degr > 180) { // if it is better to turn left it will, this is to make the function more effecient
+    leftFrontMotor.setVelocity(-fixing,rpm);
+    leftBackMotor.setVelocity(-fixing,rpm);
+    rightFrontMotor.setVelocity(fixing,rpm);
+    rightBackMotor.setVelocity(fixing,rpm);
+  }
+  else {
+    leftFrontMotor.setVelocity(fixing,rpm);
+    leftBackMotor.setVelocity(fixing,rpm);
+    rightFrontMotor.setVelocity(-fixing,rpm);
+    rightBackMotor.setVelocity(-fixing,rpm);
+  }
+  leftFrontMotor.spin(forward);
+  leftBackMotor.spin(forward);
+  rightFrontMotor.spin(reverse);
+  rightBackMotor.spin(reverse);
+  pError = error;
+  wait(1.5,msec);
+  error = degHead - degr;
+  errorAverage = (errorAverage+error+pError)/3;
+  loopCount += 1;
+  if (loopCount > 100) { // This is so previous larger errors don't break the infinite loop fix
+    pErrorAverage = errorAverage;
+    errorAverage = 0;
+  }
+}
+leftFrontMotor.stop();
+leftBackMotor.stop();
+rightFrontMotor.stop();
+rightBackMotor.stop();
+}
+void moveToPoint(double X,double Y,double finalDeg) {
+if (findAngleMove(X,Y) != degHead){
+  turnPiD(findAngleMove(X,Y));
+}
+movePiD(X,Y);
+if (finalDeg != null) {
+  turnPiD(finalDeg);
+}
+}
+//Control Functiosn
+void expansionControl() {
+expansion = true; // no need to retract this is a one time spring mechanism
+}
+void triggerControl() {
+trigger = true;
+wait(250,msec);
+trigger = false;
+}
+bool threads;
+void intakeRead(){
+intakeDisc = true;
+discLoad += 1;
+waitUntil(!intakeSensor.pressing());
+intakeDisc = false;
+}
+void turretRead(){
+turretDisc = true;
+if ((lockOn =true ) && (autoFire = true)) {
+  triggerControl();
+}
+waitUntil(!turretSensor.pressing());
+turretDisc = false;
+}
+
+
+
+
+int thread1() { // Position thread If it ever breaks we dead
+double diffrence = 0;
+double pDiffrence = 0;
+double vDiffrence = 0;
+double vBackWheelDiffrence = 0;
+double backWheelDiffrence = 0;
+double pBackWheelDiffrence = 0;
+double lastEncoderL = 0;
+double lastEncoderR = 0;
+double lastEncoderB = 0;
+double encoderVL = 0;
+double encoderVR = 0;
+double encoderVB = 0;
+double encoderVVL = 0;
+double encoderVVR = 0;
+double encoderVVB = 0;
+double positionLR = 0;
+double positionB = 0;
+double dragDegrees = (dragWheelCirc/360);
+ while(true) {
+  encoderVL = encoderL.position(degrees);
+  encoderVR = encoderR.position(degrees);
+  encoderVB = encoderB.position(degrees);
+  encoderVVL = encoderL.velocity(dps);
+  encoderVVR = encoderR.velocity(dps);
+  encoderVVB = encoderB.velocity(dps);
+  diffrence = encoderVL - encoderVR;
+  vDiffrence = encoderVVL - encoderVVR;
+  lastdegHead = degHead;
+  degHead += (2*M_PI*offsets[1])/360*(diffrence)*dragDegrees*(180/M_PI);  // tracking offset L and R should be the same no matter what
+  rotVelocity = (2*M_PI*offsets[1]/360*(vDiffrence)*dragDegrees)*(180/M_PI);
+  //degHead = (2*offsets[0]*diffrence*dragWheelCirc*180)/pow(360,2);
+  backWheelDiffrence = encoderVB - offsets[0]*diffrence/offsets[2];
+  vBackWheelDiffrence = encoderVVB - offsets[0]*diffrence/offsets[2];
+
+
+
+
+  if ((degHead >= 360)) {
+   degHead = degHead-360;
+  }
+  else if ((degHead <= 0)) {
+    degHead = degHead+360;
+  }
+    positionLR = (((encoderVL+encoderVR-diffrence)/2) - (lastEncoderL+lastEncoderR-pDiffrence)/2);
+    positionB = (encoderVB+backWheelDiffrence) - (lastEncoderB-pBackWheelDiffrence);
+  
+   if((180 < degHead)) {
+    positionX += (dragDegrees*(cos(radians(degHead))*positionLR+dragDegrees*(sin(radians(degHead))*positionB)))*-1;
+    positionY += (dragDegrees*(sin(radians(degHead))*positionLR+dragDegrees*(cos(radians(degHead))*positionB)))*-1;
+    velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)))*-1;
+    velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)))*-1;
+  }
+  else {
+    positionX += dragDegrees*(cos(radians(degHead))*positionLR+dragDegrees*(sin(radians(degHead))*positionB));
+    positionY += dragDegrees*(sin(radians(degHead))*positionLR+dragDegrees*(cos(radians(degHead))*positionB));
+    velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)));
+    velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)));
+  }
+  lastEncoderL = encoderL;
+  lastEncoderR = encoderR;
+  lastEncoderB = encoderB;
+   pDiffrence = diffrence;
+  pBackWheelDiffrence = backWheelDiffrence;
+
+
+
+
+  encoderL.setPosition(0, degrees);
+  encoderR.setPosition(0, degrees);
+  encoderB.setPosition(0, degrees);
+  this_thread::sleep_for(1);
+// I NEED VELOCITY FOR AIMBOT
+}
+}
+int thread2() { // Controller screen thread
+thread2On = true;
+while(true) {
+  /* Controller Screen Example
+  _____________________________
+  /                             \
+  | Position X: 19 Y: 18        |
+  | Heading: 45                 |
+  | Power: 89%                  |
+  \_____________________________/
+  */
+  Controller1.Screen.clearScreen(); Controller1.Screen.setCursor(1, 1);
+  Controller1.Screen.print("X: "); Controller1.Screen.print(positionX);
+  Controller1.Screen.newLine();
+  Controller1.Screen.print("Y: ");Controller1.Screen.print(positionY);
+  Controller1.Screen.newLine();
+  Controller2.Screen.print("Heading: "); Controller2.Screen.print(degHead);
+  Controller2.Screen.clearScreen(); Controller2.Screen.setCursor(1, 1);
+  Controller2.Screen.print("D: "); Controller2.Screen.print(distfeet);
+  Brain.Screen.clearScreen(); Brain.Screen.setCursor(1, 1);
+  Brain.Screen.setFont(vex::fontType::mono20);
+  //Brain.Screen.print(PotentiometerA.angle(degrees));
+  Brain.Screen.setFont(vex::fontType::mono60);
+  if ((thread1On = true)) {
+    Brain.Screen.print("3");
+  }
+  else if ((thread2On = true)) {
+    Brain.Screen.print("2");
+  }
+      else if ((thread3On = true)) {
+    Brain.Screen.print("4");
+  }
+      else if ((thread4On = true)) {
+    Brain.Screen.print("9");
+  }
+      else if ((compReady = true)) {
+    Brain.Screen.print("V");
+    Brain.Screen.newLine();
+    Brain.Screen.print("Infrared");
+  }
+
+
+
+
+  Brain.Screen.print("3249V");
+  this_thread::sleep_for(250);
+}
+}
+int thread3() { // auto aim thread
+//float flyWheelContactAngle = 70; // needs calibration
+double totalDistance = 0;
+double totalTurretRotation = turretHeading; // to make sure that we don't go overboard and twist/rip wires
+//float maxTotalTurretRotation = 720;
+float pneumaticSpeed = 8;// in inches per second idk how this is that fast
+double relativeVelocity;
+double ejectVelocity;
+double flywheelVelocity;
+double velocityXsec = velocityX*1000;
+double velocityYsec = velocityY*1000;
+if ((redTeam = true)) {
+  target = 7;
+}
+else {
+  target = 8;
+}
+task myTask = task(turretPID);
+while(true) {
+  totalTurretRotation += degHead - lastdegHead;
+  velocityXsec = velocityX*1000; // inches per ms to inches per second
+  velocityYsec = velocityY*1000;
+  relativeVelocity = sqrt(pow(velocityXsec,2)+pow(velocityYsec,2)+2*velocityX*velocityYsec*cos(90-findAngle(target)));
+  totalDistance = sqrt(pow(findDistance(positionX,positionY,coordinateLocations[0][target],coordinateLocations[1][target]),2)
+  +pow(tan(radians(flyWheelAngle))*findDistance(positionX,positionY,coordinateLocations[0][target],coordinateLocations[1][target]),2));
+  if((aimBot=true && (totalTurretRotation >= 360*4))) {
+    // Turret movement very simple :D
+    // it isnt D:
+    if ((findAngle(target) - turretThreashold) <= turretHeading <= (findAngle(target) + turretThreashold)) {
+      lockOn = true;
+    } // decides if the turret is within acceptable limits
+    else if((activePID = false)&&((findAngle(target) - turretThreashold) <=! turretHeading <=! (findAngle(target) + turretThreashold))) { // prevents infinite PID's
+        turretError = findAngle(target);
+    }
+    // sqrt(g*d^2/(2*cos(a)*)(hg-hr-d*tan(a))
+    ejectVelocity = sqrt((gravity*pow(totalDistance,2)/(2*cos(radians(flyWheelAngle)))*(zCoordinates[1]-turretOffsetZ-totalDistance*tan(radians(flyWheelAngle)))))
+    -pneumaticSpeed-relativeVelocity; // inches per second
+    // RPM = (v*60)/(2*pi*r_wheel*sqrt(i_object/i_wheel+i_deltaWheel))
+    flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
+    flyWheel.setVelocity(flywheelVelocity,rpm);
+   // flyWheel2.setVelocity(flywheelVelocity,rpm);
+  }
+    else {
+      turretHeading = totalTurretRotation;
+      turretError = degHead;
+    }
+this_thread::sleep_for(1);
+}
+}
+int thread4() { // auto Fire Thread
+intake.setVelocity(100,percent);
+intake.spin(forward);
+while (true) {
+  intakeSensor.pressed(intakeRead);
+  turretSensor.pressed(turretRead);
+  if (discLoad != 3) {
+    intake.setVelocity(100,percent);
+  }
+  else {
+    intake.setVelocity(0,percent);
+  }
+  //if ((discLoad = !3)){
+  /* }
+  else {
+    intake.stop();
+  } */
+  this_thread::sleep_for(25);
+}
+}
+void threadCheck() {
+if (thread1On == true && thread2On == true && thread3On == true && thread4On == true){
+  compReady = true;
+}
 }
 
 /**
@@ -86,6 +607,7 @@ void opcontrol() {
 	pros::Motor leftBackMotor (leftBackMotor_PORT);
 	pros::Motor rightFrontMotor (rightFrontMotor_PORT);
 	pros::Motor rightBackMotor (rightBackMotor_PORT); 
+	pros::Motor turretMotor (turretMotor_PORT);
 
 	float curve = 0.75;
 	float left;
