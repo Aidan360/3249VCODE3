@@ -185,7 +185,7 @@ void initialize() {
 
 
 int turretPID() {
-	pros::Motor turretMotor (turretMotor_PORT);
+pros::Motor turretMotor (turretMotor_PORT);
 double factorP = 0.05;
 double factorI = 0.001;
 double factorD = 0.25;
@@ -202,16 +202,15 @@ while (abs(error) >= 0) {
     error = (turretHeading - turretError);
     intergral = intergral + error;
     derivitave = error - lastError;
-    fixing = (error*factorP)+(intergral*factorI)+(derivitave*factorD);
+    fixing = ((error*factorP)+(intergral*factorI)+(derivitave*factorD));
   if (turretError > 180) {
-    turretMotor.setVelocity(fixing,rpm);
+    turretMotor.move_velocity(fixing);
   }
   else {
-    turretMotor.setVelocity(-fixing,rpm);
+    turretMotor.move_velocity(-fixing);
   }
-    turretMotor.move;
     lastError = error;
-    wait(1.5,msec);
+    pros::c::delay(10);
     error = turretHeading - turretError;
     errorAverage = (errorAverage+error+lastError)/3;
     loopCount += 1;
@@ -224,54 +223,57 @@ while (abs(error) >= 0) {
   }
 }
 activePID = false;
-turretMotor.stop();
+turretMotor.brake();
 return(1);
 }
 //Autonomous functions
 void movePiD(double X, double Y) {
-double factorP = 0.5;
-double factorI = 0.001;
-double factorD = 0.25;
-double error = 12/*findDistance(positionX,positionY,X,Y)*/;
-double proportional = 0;
-double intergral = 0;
-double derivitave = 0;
-double lastError = error;
-double fixing = 0;
-double errorAverage = error;
-double lastErrorAverage = 0;
-double loopCount = 0;
-while (abs(error) >= 0) {
-  /*if ((abs(lastErrorAverage) - 0.01) < (abs(lastError) < (abs(lastErrorAverage) + 0.01))) { // preventing infinite correct loop
-  break;
-  } */
-  proportional = error*factorP;
-  intergral = intergral + error;
-  derivitave = error - lastError;
-  fixing = proportional+(intergral*factorI)+(derivitave*factorD);
-  leftFrontMotor.setVelocity(fixing,rpm);
-  leftBackMotor.setVelocity(fixing,rpm);
-  rightFrontMotor.setVelocity(fixing,rpm);
-  rightBackMotor.setVelocity(fixing,rpm);
-  leftFrontMotor.spin(forward);
-  leftBackMotor.spin(forward);
-  rightFrontMotor.spin(reverse);
-  rightBackMotor.spin(reverse);
-  lastError = error;
-  wait(1.5,msec);
-  error = findDistance(positionX,positionY,X,Y);
-  errorAverage = (errorAverage+error+lastError)/3;
-  loopCount += 1;
-  if (loopCount > 75) { // This is so previous larger errors don't break the infinite loop fix
-    lastErrorAverage = errorAverage;
-    errorAverage = 0;
+  pros::Motor leftFrontMotor (leftFrontMotor_PORT);
+  pros::Motor leftBackMotor (leftBackMotor_PORT);
+  pros::Motor rightFrontMotor (rightFrontMotor_PORT);
+  pros::Motor rightBackMotor (rightBackMotor_PORT); 
+  pros::Motor turretMotor (turretMotor_PORT);
+  double factorP = 0.5;
+  double factorI = 0.001;
+  double factorD = 0.25;
+  double error = 12/*findDistance(positionX,positionY,X,Y)*/;
+  double proportional = 0;
+  double intergral = 0;
+  double derivitave = 0;
+  double lastError = error;
+  double fixing = 0;
+  double errorAverage = error;
+  double lastErrorAverage = 0;
+  double loopCount = 0;
+  while (abs(error) >= 0) {
+    /*if ((abs(lastErrorAverage) - 0.01) < (abs(lastError) < (abs(lastErrorAverage) + 0.01))) { // preventing infinite correct loop
+    break;
+    } */
+    proportional = error*factorP;
+    intergral = intergral + error;
+    derivitave = error - lastError;
+    fixing = proportional+(intergral*factorI)+(derivitave*factorD);
+    leftFrontMotor.move_velocity(fixing);
+    leftBackMotor.move_velocity(fixing);
+    rightFrontMotor.move_velocity(-fixing);
+    rightBackMotor.move_velocity(-fixing);
+    lastError = error;
+    pros::c::delay(10);
+    error = findDistance(positionX,positionY,X,Y);
+    errorAverage = (errorAverage+error+lastError)/3;
+    loopCount += 1;
+
+    if (loopCount > 75) { // This is so previous larger errors don't break the infinite loop fix
+      lastErrorAverage = errorAverage;
+      errorAverage = 0;
+    }
   }
+  leftFrontMotor.stop();
+  leftBackMotor.stop();
+  rightFrontMotor.stop();
+  rightBackMotor.stop();
 }
-leftFrontMotor.stop();
-leftBackMotor.stop();
-rightFrontMotor.stop();
-rightBackMotor.stop();
-}
+
 void turnPiD(double degr) {
 double factorP = 0.625;
 double factorI = 0.005;
@@ -292,16 +294,16 @@ while (abs(error) <= 0) {
   derivitave = error - pError;
   fixing = (error*factorP)+(intergral*factorI)+(derivitave*factorD);
   if (degr > 180) { // if it is better to turn left it will, this is to make the function more effecient
-    leftFrontMotor.setVelocity(-fixing,rpm);
-    leftBackMotor.setVelocity(-fixing,rpm);
-    rightFrontMotor.setVelocity(fixing,rpm);
-    rightBackMotor.setVelocity(fixing,rpm);
+    leftFrontMotor.move_velocity(-fixing,rpm);
+    leftBackMotor.move_velocity(-fixing,rpm);
+    rightFrontMotor.move_velocity(fixing,rpm);
+    rightBackMotor.move_velocity(fixing,rpm);
   }
   else {
-    leftFrontMotor.setVelocity(fixing,rpm);
-    leftBackMotor.setVelocity(fixing,rpm);
-    rightFrontMotor.setVelocity(-fixing,rpm);
-    rightBackMotor.setVelocity(-fixing,rpm);
+    leftFrontMotor.move_velocity(fixing,rpm);
+    leftBackMotor.move_velocity(fixing,rpm);
+    rightFrontMotor.move_velocity(-fixing,rpm);
+    rightBackMotor.move_velocity(-fixing,rpm);
   }
   leftFrontMotor.spin(forward);
   leftBackMotor.spin(forward);
@@ -521,8 +523,8 @@ while(true) {
     -pneumaticSpeed-relativeVelocity; // inches per second
     // RPM = (v*60)/(2*pi*r_wheel*sqrt(i_object/i_wheel+i_deltaWheel))
     flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
-    flyWheel.setVelocity(flywheelVelocity,rpm);
-   // flyWheel2.setVelocity(flywheelVelocity,rpm);
+    flyWheel.move_velocity(flywheelVelocity,rpm);
+   // flyWheel2.move_velocity(flywheelVelocity,rpm);
   }
     else {
       turretHeading = totalTurretRotation;
@@ -532,16 +534,16 @@ this_thread::sleep_for(1);
 }
 }
 int thread4() { // auto Fire Thread
-intake.setVelocity(100,percent);
+intake.move_velocity(100,percent);
 intake.spin(forward);
 while (true) {
   intakeSensor.pressed(intakeRead);
   turretSensor.pressed(turretRead);
   if (discLoad != 3) {
-    intake.setVelocity(100,percent);
+    intake.move_velocity(100,percent);
   }
   else {
-    intake.setVelocity(0,percent);
+    intake.move_velocity(0,percent);
   }
   //if ((discLoad = !3)){
   /* }
