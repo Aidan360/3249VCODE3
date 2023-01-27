@@ -1,6 +1,7 @@
 #include "main.h"
 #include "config.h"
 //#include "odom.h"
+#define _USE_MATH_DEFINES
 
 // Begin project code
 /* TODO:
@@ -71,9 +72,16 @@ float offsets[3] {1.53,1.73,8.72};// THIS NEEDS CALIBRATION ONCE ODOMETRY WHEELS
 // Low Z and High Z is for aiming. EX if Turret aim is between Zlow < Yangle < ZHigh then Fire
 
 
+//double M_PI = 3.14159265358979323846264338327950288;
+
+
 
 
 /*Launch Math*/
+
+
+
+
 
 
 
@@ -91,6 +99,10 @@ double discInertia = 0.121254*pow(5.5/2,2); // i_disc
 double flyWheelInertia = flyWheelRadius*pow(2,2); // i_wheel
 // Inertial increase from Compression i_delta = (F*r^2)/(3*E)
 double flyWheelInertialIncrease = (flyWheelCompressionForce*pow((flyWheelRadius*2),2))/(3); // i_wheelDelta
+
+
+
+
 
 
 
@@ -132,6 +144,8 @@ return(n);
 }
 
 
+
+
 double radians(double deg, double x = 0) {
 x = (deg * (M_PI / 180));
 return(x);
@@ -144,7 +158,7 @@ while(true) {
 Brain.Screen.setCursor(2, 1);
 Brain.Screen.print("Thread #1 Iterations (250ms loop): %d", threadLoopCount);
 threadLoopCount += 1;
-wait(250, msec);
+pros::c::delay(250, msec);
 }
 }
 thread myThread1 = thread(thread1); // how to execute in code
@@ -157,13 +171,6 @@ float distfeet;
 
 
 
-
-
-
-
-
-
-
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -172,15 +179,27 @@ float distfeet;
  */
 void initialize() {
 
-	pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
-	pros::Motor leftBackMotor_initializer (leftBackMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
-	pros::Motor rightFrontMotor_initializer (rightFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
-	pros::Motor rightBackMotor_initializer (rightBackMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
-	pros::Motor turretMotor_initializer (turretMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
-	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello PROS User!");
+
+  pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
+  pros::Motor leftBackMotor_initializer (leftBackMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
+  pros::Motor rightFrontMotor_initializer (rightFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
+  pros::Motor rightBackMotor_initializer (rightBackMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
+  pros::Motor turretMotor_initializer (turretMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
+  pros::Motor intake_initializer (intakeMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
+  pros::Motor flywheel_initializer (flyWheel_PORT,pros::E_MOTOR_GEARSET_18,false,pros::E_MOTOR_ENCODER_DEGREES);
+  pros::ADIEncoder encoderL_initializer (encoderLeftTop_PORT,encoderLeftBottom_PORT, false);
+  pros::ADIEncoder encoderR_initializer (encoderRightTop_PORT,encoderRightBottom_PORT, false);
+  pros::ADIEncoder encoderB_initializer (encoderBackTop_PORT,encoderBackBottom_PORT, false);
+  pros::ADIDigitalOut indexer_initializer (indexer_PORT);
+  pros::ADIDigitalIn intakeSensor_initializer ({{expander_PORT,EXT_IntakeSensorPort}});  
+  pros::lcd::initialize();
+  pros::lcd::set_text(1, "Hello PROS User!");
+
 
 }
+
+
+
 
 
 
@@ -231,7 +250,7 @@ void movePiD(double X, double Y) {
   pros::Motor leftFrontMotor (leftFrontMotor_PORT);
   pros::Motor leftBackMotor (leftBackMotor_PORT);
   pros::Motor rightFrontMotor (rightFrontMotor_PORT);
-  pros::Motor rightBackMotor (rightBackMotor_PORT); 
+  pros::Motor rightBackMotor (rightBackMotor_PORT);
   pros::Motor turretMotor (turretMotor_PORT);
   double factorP = 0.5;
   double factorI = 0.001;
@@ -263,16 +282,18 @@ void movePiD(double X, double Y) {
     errorAverage = (errorAverage+error+lastError)/3;
     loopCount += 1;
 
+
     if (loopCount > 75) { // This is so previous larger errors don't break the infinite loop fix
       lastErrorAverage = errorAverage;
       errorAverage = 0;
     }
   }
-  leftFrontMotor.stop();
-  leftBackMotor.stop();
-  rightFrontMotor.stop();
-  rightBackMotor.stop();
+  leftFrontMotor.brake();
+  leftBackMotor.brake();
+  rightFrontMotor.brake();
+  rightBackMotor.brake();
 }
+
 
 void turnPiD(double degr) {
 double factorP = 0.625;
@@ -286,6 +307,10 @@ double fixing = 0;
 double errorAverage = 0;
 double pErrorAverage = 0;
 double loopCount = 0;
+  pros::Motor leftFrontMotor (leftFrontMotor_PORT);
+  pros::Motor leftBackMotor (leftBackMotor_PORT);
+  pros::Motor rightFrontMotor (rightFrontMotor_PORT);
+  pros::Motor rightBackMotor (rightBackMotor_PORT);
 while (abs(error) <= 0) {
   if ((abs(pErrorAverage) - 0.01) < (abs(pError) < (abs(pErrorAverage) + 0.01))) { // preventing infinite correct loop
     break;
@@ -294,23 +319,19 @@ while (abs(error) <= 0) {
   derivitave = error - pError;
   fixing = (error*factorP)+(intergral*factorI)+(derivitave*factorD);
   if (degr > 180) { // if it is better to turn left it will, this is to make the function more effecient
-    leftFrontMotor.move_velocity(-fixing,rpm);
-    leftBackMotor.move_velocity(-fixing,rpm);
-    rightFrontMotor.move_velocity(fixing,rpm);
-    rightBackMotor.move_velocity(fixing,rpm);
+    leftFrontMotor.move_velocity(fixing);
+    leftBackMotor.move_velocity(fixing);
+    rightFrontMotor.move_velocity(fixing);
+    rightBackMotor.move_velocity(fixing);
   }
   else {
-    leftFrontMotor.move_velocity(fixing,rpm);
-    leftBackMotor.move_velocity(fixing,rpm);
-    rightFrontMotor.move_velocity(-fixing,rpm);
-    rightBackMotor.move_velocity(-fixing,rpm);
+    leftFrontMotor.move_velocity(fixing);
+    leftBackMotor.move_velocity(fixing);
+    rightFrontMotor.move_velocity(fixing);
+    rightBackMotor.move_velocity(fixing);
   }
-  leftFrontMotor.spin(forward);
-  leftBackMotor.spin(forward);
-  rightFrontMotor.spin(reverse);
-  rightBackMotor.spin(reverse);
   pError = error;
-  wait(1.5,msec);
+    pros::c::delay(10);
   error = degHead - degr;
   errorAverage = (errorAverage+error+pError)/3;
   loopCount += 1;
@@ -319,10 +340,10 @@ while (abs(error) <= 0) {
     errorAverage = 0;
   }
 }
-leftFrontMotor.stop();
-leftBackMotor.stop();
-rightFrontMotor.stop();
-rightBackMotor.stop();
+leftFrontMotor.brake();
+leftBackMotor.brake();
+rightFrontMotor.brake();
+rightBackMotor.brake();
 }
 void moveToPoint(double X,double Y,double finalDeg) {
 if (findAngleMove(X,Y) != degHead){
@@ -334,19 +355,21 @@ if (finalDeg != null) {
 }
 }
 //Control Functiosn
-void expansionControl() {
+/*void expansionControl() {
 expansion = true; // no need to retract this is a one time spring mechanism
-}
+} */pros::ADIDigitalOut indexer (indexer_PORT);
+pros::ADIDigitalIn intakeSensor ({{expander_PORT,EXT_IntakeSensorPort}});
 void triggerControl() {
-trigger = true;
-wait(250,msec);
-trigger = false;
+indexer.set_value(true);
+pros::c::delay(250);
+indexer.set_value(false);
 }
 bool threads;
+/*
 void intakeRead(){
 intakeDisc = true;
 discLoad += 1;
-waitUntil(!intakeSensor.pressing());
+pros::Task::delay_until((intakeSensor.get_value() == false),10);
 intakeDisc = false;
 }
 void turretRead(){
@@ -354,91 +377,95 @@ turretDisc = true;
 if ((lockOn =true ) && (autoFire = true)) {
   triggerControl();
 }
-waitUntil(!turretSensor.pressing());
+pros::c::delayUntil(!turretSensor.pressing());
 turretDisc = false;
 }
 
 
 
 
+
+*/
+
+
 int thread1() { // Position thread If it ever breaks we dead
-double diffrence = 0;
-double pDiffrence = 0;
-double vDiffrence = 0;
-double vBackWheelDiffrence = 0;
-double backWheelDiffrence = 0;
-double pBackWheelDiffrence = 0;
-double lastEncoderL = 0;
-double lastEncoderR = 0;
-double lastEncoderB = 0;
-double encoderVL = 0;
-double encoderVR = 0;
-double encoderVB = 0;
-double encoderVVL = 0;
-double encoderVVR = 0;
-double encoderVVB = 0;
-double positionLR = 0;
-double positionB = 0;
-double dragDegrees = (dragWheelCirc/360);
- while(true) {
-  encoderVL = encoderL.position(degrees);
-  encoderVR = encoderR.position(degrees);
-  encoderVB = encoderB.position(degrees);
-  encoderVVL = encoderL.velocity(dps);
-  encoderVVR = encoderR.velocity(dps);
-  encoderVVB = encoderB.velocity(dps);
-  diffrence = encoderVL - encoderVR;
-  vDiffrence = encoderVVL - encoderVVR;
-  lastdegHead = degHead;
-  degHead += (2*M_PI*offsets[1])/360*(diffrence)*dragDegrees*(180/M_PI);  // tracking offset L and R should be the same no matter what
-  rotVelocity = (2*M_PI*offsets[1]/360*(vDiffrence)*dragDegrees)*(180/M_PI);
-  //degHead = (2*offsets[0]*diffrence*dragWheelCirc*180)/pow(360,2);
-  backWheelDiffrence = encoderVB - offsets[0]*diffrence/offsets[2];
-  vBackWheelDiffrence = encoderVVB - offsets[0]*diffrence/offsets[2];
+  double diffrence = 0;
+  double pDiffrence = 0;
+  double vDiffrence = 0;
+  double vBackWheelDiffrence = 0;
+  double backWheelDiffrence = 0;
+  double pBackWheelDiffrence = 0;
+  double lastEncoderL = 0;
+  double lastEncoderR = 0;
+  double lastEncoderB = 0;
+  double encoderVL = 0;
+  double encoderVR = 0;
+  double encoderVB = 0;
+  double encoderVVL = 0;
+  double encoderVVR = 0;
+  double encoderVVB = 0;
+  double positionLR = 0;
+  double positionB = 0;
+  double dragDegrees = (dragWheelCirc/360);
+  pros::ADIEncoder encoderL (encoderLeftTop_PORT,encoderLeftBottom_PORT);
+  pros::ADIEncoder encoderR (encoderRightTop_PORT,encoderRightBottom_PORT);
+  pros::ADIEncoder encoderB (encoderBackTop_PORT,encoderBackBottom_PORT);
+  while(true) {
+    encoderVL = encoderL.get_value();
+    encoderVR = encoderR.get_value();
+    encoderVB = encoderB.get_value();
+  //  encoderVVL = encoderL.velocity(dps);
+  //  encoderVVR = encoderR.velocity(dps);
+  //  encoderVVB = encoderB.velocity(dps);
+    diffrence = encoderVL - encoderVR;
+    vDiffrence = encoderVVL - encoderVVR;
+    lastdegHead = degHead;
+    degHead += (2*M_PI*offsets[1])/360*(diffrence)*dragDegrees*(180/M_PI);  // tracking offset L and R should be the same no matter what
+    rotVelocity = (2*M_PI*offsets[1]/360*(vDiffrence)*dragDegrees)*(180/M_PI);
+    //degHead = (2*offsets[0]*diffrence*dragWheelCirc*180)/pow(360,2);
+    backWheelDiffrence = encoderVB - offsets[0]*diffrence/offsets[2];
+    vBackWheelDiffrence = encoderVVB - offsets[0]*diffrence/offsets[2];
 
 
-
-
-  if ((degHead >= 360)) {
-   degHead = degHead-360;
-  }
-  else if ((degHead <= 0)) {
-    degHead = degHead+360;
-  }
-    positionLR = (((encoderVL+encoderVR-diffrence)/2) - (lastEncoderL+lastEncoderR-pDiffrence)/2);
-    positionB = (encoderVB+backWheelDiffrence) - (lastEncoderB-pBackWheelDiffrence);
+    if ((degHead >= 360)) {
+    degHead = degHead-360;
+    }
+    else if ((degHead <= 0)) {
+      degHead = degHead+360;
+    }
+      positionLR = (((encoderVL+encoderVR-diffrence)/2) - (lastEncoderL+lastEncoderR-pDiffrence)/2);
+      positionB = (encoderVB+backWheelDiffrence) - (lastEncoderB-pBackWheelDiffrence);
   
-   if((180 < degHead)) {
-    positionX += (dragDegrees*(cos(radians(degHead))*positionLR+dragDegrees*(sin(radians(degHead))*positionB)))*-1;
-    positionY += (dragDegrees*(sin(radians(degHead))*positionLR+dragDegrees*(cos(radians(degHead))*positionB)))*-1;
-    velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)))*-1;
-    velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)))*-1;
+    if((180 < degHead)) {
+      positionX += (dragDegrees*(cos(radians(degHead))*positionLR+dragDegrees*(sin(radians(degHead))*positionB)))*-1;
+      positionY += (dragDegrees*(sin(radians(degHead))*positionLR+dragDegrees*(cos(radians(degHead))*positionB)))*-1;
+      velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)))*-1;
+      velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)))*-1;
+    }
+    else {
+      positionX += dragDegrees*(cos(radians(degHead))*positionLR+dragDegrees*(sin(radians(degHead))*positionB));
+      positionY += dragDegrees*(sin(radians(degHead))*positionLR+dragDegrees*(cos(radians(degHead))*positionB));
+      velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)));
+      velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)));
+    }
+    lastEncoderL = encoderVL;
+    lastEncoderR = encoderVR;
+    lastEncoderB = encoderVB;
+    pDiffrence = diffrence;
+    pBackWheelDiffrence = backWheelDiffrence;
+
+    encoderL.reset();
+    encoderR.reset();
+    encoderB.reset();
+    pros::c::task_delay(10);
+  // I NEED VELOCITY FOR AIMBOT
   }
-  else {
-    positionX += dragDegrees*(cos(radians(degHead))*positionLR+dragDegrees*(sin(radians(degHead))*positionB));
-    positionY += dragDegrees*(sin(radians(degHead))*positionLR+dragDegrees*(cos(radians(degHead))*positionB));
-    velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)));
-    velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)));
-  }
-  lastEncoderL = encoderL;
-  lastEncoderR = encoderR;
-  lastEncoderB = encoderB;
-   pDiffrence = diffrence;
-  pBackWheelDiffrence = backWheelDiffrence;
-
-
-
-
-  encoderL.setPosition(0, degrees);
-  encoderR.setPosition(0, degrees);
-  encoderB.setPosition(0, degrees);
-  this_thread::sleep_for(1);
-// I NEED VELOCITY FOR AIMBOT
-}
 }
 int thread2() { // Controller screen thread
 thread2On = true;
 while(true) {
+  pros::Controller controller1 (pros::E_CONTROLLER_MASTER);
+  pros::Controller controller2 (pros::E_CONTROLLER_MASTER);
   /* Controller Screen Example
   _____________________________
   /                             \
@@ -447,15 +474,12 @@ while(true) {
   | Power: 89%                  |
   \_____________________________/
   */
-  Controller1.Screen.clearScreen(); Controller1.Screen.setCursor(1, 1);
-  Controller1.Screen.print("X: "); Controller1.Screen.print(positionX);
-  Controller1.Screen.newLine();
-  Controller1.Screen.print("Y: ");Controller1.Screen.print(positionY);
-  Controller1.Screen.newLine();
-  Controller2.Screen.print("Heading: "); Controller2.Screen.print(degHead);
-  Controller2.Screen.clearScreen(); Controller2.Screen.setCursor(1, 1);
-  Controller2.Screen.print("D: "); Controller2.Screen.print(distfeet);
-  Brain.Screen.clearScreen(); Brain.Screen.setCursor(1, 1);
+  controller1.clear(); 
+  controller1.print(0,0,"X: ",positionX);
+  controller1.print(1,0,"Y: ",positionY);
+  controller1.print(2,0,"Heading: ", degHead);
+  controller2.print(0,0,"Launch Distance", distfeet);
+  /*
   Brain.Screen.setFont(vex::fontType::mono20);
   //Brain.Screen.print(PotentiometerA.angle(degrees));
   Brain.Screen.setFont(vex::fontType::mono60);
@@ -476,12 +500,11 @@ while(true) {
     Brain.Screen.newLine();
     Brain.Screen.print("Infrared");
   }
+ */
 
 
-
-
-  Brain.Screen.print("3249V");
-  this_thread::sleep_for(250);
+  //Brain.Screen.print("3249V");
+  pros::c::task_delay(250);
 }
 }
 int thread3() { // auto aim thread
@@ -501,8 +524,9 @@ if ((redTeam = true)) {
 else {
   target = 8;
 }
-task myTask = task(turretPID);
+//task myTask = task(turretPID);
 while(true) {
+  pros::Motor flyWheel (flyWheel_PORT);
   totalTurretRotation += degHead - lastdegHead;
   velocityXsec = velocityX*1000; // inches per ms to inches per second
   velocityYsec = velocityY*1000;
@@ -523,34 +547,35 @@ while(true) {
     -pneumaticSpeed-relativeVelocity; // inches per second
     // RPM = (v*60)/(2*pi*r_wheel*sqrt(i_object/i_wheel+i_deltaWheel))
     flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
-    flyWheel.move_velocity(flywheelVelocity,rpm);
+  
+    flyWheel.move_velocity(flywheelVelocity);
    // flyWheel2.move_velocity(flywheelVelocity,rpm);
   }
-    else {
-      turretHeading = totalTurretRotation;
-      turretError = degHead;
-    }
-this_thread::sleep_for(1);
+  else {
+    turretHeading = totalTurretRotation;
+    turretError = degHead;
+  }
+    pros::c::task_delay(10);
 }
 }
 int thread4() { // auto Fire Thread
-intake.move_velocity(100,percent);
-intake.spin(forward);
+pros::Motor intake (intakeMotor_PORT);
+intake.move_velocity(200);
 while (true) {
-  intakeSensor.pressed(intakeRead);
-  turretSensor.pressed(turretRead);
+  //intakeSensor.pressed(intakeRead);
+  //turretSensor.pressed(turretRead);
   if (discLoad != 3) {
-    intake.move_velocity(100,percent);
+    intake.move_velocity(200);
   }
   else {
-    intake.move_velocity(0,percent);
+    intake.move_velocity(0);
   }
   //if ((discLoad = !3)){
   /* }
   else {
-    intake.stop();
+    intake.brake();
   } */
-  this_thread::sleep_for(25);
+    pros::c::task_delay(10);
 }
 }
 void threadCheck() {
@@ -559,12 +584,14 @@ if (thread1On == true && thread2On == true && thread3On == true && thread4On == 
 }
 }
 
+
 /**
  * Runs while the robot is in the disabled state of Field Management System or
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
 void disabled() {}
+
 
 /**
  * Runs after initialize(), and before autonomous when connected to the Field
@@ -577,6 +604,7 @@ void disabled() {}
  */
 void competition_initialize() {}
 
+
 /**
  * Runs the user autonomous code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -585,10 +613,11 @@ void competition_initialize() {}
  * for non-competition testing purposes.
  *
  * If the robot is disabled or communications is lost, the autonomous task
- * will be stopped. Re-enabling the robot will restart the task, not re-start it
+ * will be brakeped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
 void autonomous() {}
+
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -600,38 +629,44 @@ void autonomous() {}
  * following initialize().
  *
  * If the robot is disabled or communications is lost, the
- * operator control task will be stopped. Re-enabling the robot will restart the
+ * operator control task will be brakeped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Controller controller1 (pros::E_CONTROLLER_MASTER);
-	pros::Motor leftFrontMotor (leftFrontMotor_PORT);
-	pros::Motor leftBackMotor (leftBackMotor_PORT);
-	pros::Motor rightFrontMotor (rightFrontMotor_PORT);
-	pros::Motor rightBackMotor (rightBackMotor_PORT); 
-	pros::Motor turretMotor (turretMotor_PORT);
+  pros::Controller controller1 (pros::E_CONTROLLER_MASTER);
+  pros::Controller controller2 (pros::E_CONTROLLER_MASTER);
+  pros::Motor leftFrontMotor (leftFrontMotor_PORT);
+  pros::Motor leftBackMotor (leftBackMotor_PORT);
+  pros::Motor rightFrontMotor (rightFrontMotor_PORT);
+  pros::Motor rightBackMotor (rightBackMotor_PORT);
+  pros::Motor turretMotor (turretMotor_PORT);
 
-	float curve = 0.75;
-	float left;
-	float right;
-	float power;
-	float turn;
-	while (true) {
 
-		power = controller1.get_analog(ANALOG_LEFT_Y);
-		turn = controller1.get_analog(ANALOG_RIGHT_Y);
-		left = power + turn;
-		right = power - turn;
-		leftFrontMotor.move(100*(((1-curve)*left)/100+(curve*pow(left/100,7)))); // Conners Move 
-		leftBackMotor.move(100*(((1-curve)*left)/100+(curve*pow(left/100,7))));
-		rightFrontMotor.move(100*(((1-curve)*right)/100+(curve*pow(right/100,7))));
-		rightBackMotor.move(100*(((1-curve)*right)/100+(curve*pow(right/100,7))));
+  float curve = 0.75;
+  float left;
+  float right;
+  float power;
+  float turn;
+  while (true) {
+
+
+    power = controller1.get_analog(ANALOG_LEFT_Y);
+    turn = controller1.get_analog(ANALOG_RIGHT_Y);
+    left = power + turn;
+    right = power - turn;
+    leftFrontMotor.move(100*(((1-curve)*left)/100+(curve*pow(left/100,7)))); // Conners Move
+    leftBackMotor.move(100*(((1-curve)*left)/100+(curve*pow(left/100,7))));
+    rightFrontMotor.move(100*(((1-curve)*right)/100+(curve*pow(right/100,7))));
+    rightBackMotor.move(100*(((1-curve)*right)/100+(curve*pow(right/100,7))));
 /*
-		leftFrontMotor.spin(forward,(Controller1.Axis3.position() + Controller1.Axis1.position())^2/100,velocityUnits::pct); // Arcade control
- 		leftBackMotor.spin(forward,(Controller1.Axis3.position() + Controller1.Axis1.position())^2/100,velocityUnits::pct);
- 		rightFrontMotor.spin(forward,(Controller1.Axis3.position() - Controller1.Axis1.position())^2/100,velocityUnits::pct);
-		rightBackMotor.spin(forward,(Controller1.Axis3.position() - Controller1.Axis1.position())^2/100,velocityUnits::pct);
+    leftFrontMotor.spin(forward,(Controller1.Axis3.position() + Controller1.Axis1.position())^2/100,velocityUnits::pct); // Arcade control
+    leftBackMotor.spin(forward,(Controller1.Axis3.position() + Controller1.Axis1.position())^2/100,velocityUnits::pct);
+    rightFrontMotor.spin(forward,(Controller1.Axis3.position() - Controller1.Axis1.position())^2/100,velocityUnits::pct);
+    rightBackMotor.spin(forward,(Controller1.Axis3.position() - Controller1.Axis1.position())^2/100,velocityUnits::pct);
 */
-		pros::delay(20);
-	}
+    pros::delay(20);
+  }
 }
+
+
+

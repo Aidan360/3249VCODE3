@@ -13,18 +13,18 @@
 #define expander_PORT 9
 // Brain 3-Wire Ports
 #define potentiometer_PORT 1
-#define expansionPneumatic_Port 2
-#define encoderLeftPortTop_Port 3
-#define encoderLeftPortBottom_Port 4
-#define encoderRightPortTop_Port 5
-#define encoderRightPortBottom 6
-#define encoderBackPortTop 7
-#define encoderBackPortBottom 8
+#define indexer_PORT 2
+#define encoderLeftTop_PORT 3
+#define encoderLeftBottom_PORT 4
+#define encoderRightTop_PORT 5
+#define encoderRightBottom_PORT 6
+#define encoderBackTop_PORT 7
+#define encoderBackBottom_PORT 8
 // Expander Ports
-#define exIntakeSensorPort 1
-#define exFlywheelSensorPort 2
-#define exIndexerPneumaticPort 3
-#define exGyroTurretPort 4
+#define EXT_IntakeSensorPort 1
+#define EXT_FlywheelSensorPort 2
+#define EXT_ExpansionPneumaticPort 3
+#define EXT_GyroTurretPort 4
 
 /*
  leftFrontMotor.spin(forward,(Controller1.Axis3.position() + Controller1.Axis1.position())^2/100,velocityUnits::pct); // Arcade control
