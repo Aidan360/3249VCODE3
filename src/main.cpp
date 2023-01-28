@@ -8,6 +8,15 @@
 Get the robots current velocity either in odom loop or somewhere else
 Create movement safezones. (Autonomous line and potentially the low goal L)
 Have the ability to switch
+
+
+Merge flywheel thread and odom thread
+Account for change of angle in the turret while moving
+Varible flywheel positon change*** after comp probs 
+
+
+
+
 */
 /* Odometry */
 // PROGRAM USES RADIANS
