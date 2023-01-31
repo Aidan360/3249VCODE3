@@ -13,8 +13,8 @@ Have the ability to switch
 Merge flywheel thread and odom thread
 Account for change of angle in the turret while moving
 Varible flywheel positon change*** after comp probs 
-
-
+Fix turret PID
+Fix PIDS 
 
 
 */
@@ -27,6 +27,7 @@ double turretError;
 bool turretBreak;
 float turretThreashold = 3;
 float turretOffsetZ = 11.5; // turret offset height from ground so it can properly aim
+float flywheelOffset = 5; // needs to be measured 
 float distanceFromCorners; // Needs calibration
 int discLoad;
 bool intakeDisc;
@@ -204,13 +205,7 @@ void initialize() {
   pros::lcd::initialize();
   pros::lcd::set_text(1, "Hello PROS User!");
 
-
 }
-
-
-
-
-
 
 int turretPID() {
 pros::Motor turretMotor (turretMotor_PORT);
@@ -492,26 +487,28 @@ while(true) {
   Brain.Screen.setFont(vex::fontType::mono20);
   //Brain.Screen.print(PotentiometerA.angle(degrees));
   Brain.Screen.setFont(vex::fontType::mono60);
+ */  
   if ((thread1On = true)) {
-    Brain.Screen.print("3");
+      pros::screen::set_pen(COLOR_PURPLE);
+     pros::screen::print(pros::E_TEXT_LARGE, 1, "3");
   }
   else if ((thread2On = true)) {
-    Brain.Screen.print("2");
+    pros::screen::set_pen(COLOR_GREEN);
+    pros::screen::print(pros::E_TEXT_LARGE, 1, "2");
   }
-      else if ((thread3On = true)) {
-    Brain.Screen.print("4");
+  else if ((thread3On = true)) {
+    pros::screen::set_pen(COLOR_PURPLE);
+    pros::screen::print(pros::E_TEXT_LARGE, 1, "4");
   }
-      else if ((thread4On = true)) {
-    Brain.Screen.print("9");
+  else if ((thread4On = true)) {
+    pros::screen::set_pen(COLOR_PURPLE);
+    pros::screen::print(pros::E_TEXT_LARGE, 1, "9");
   }
-      else if ((compReady = true)) {
-    Brain.Screen.print("V");
-    Brain.Screen.newLine();
-    Brain.Screen.print("Infrared");
+  else if ((compReady = true)) {
+    pros::screen::set_pen(COLOR_DARK_RED);
+    pros::screen::print(pros::E_TEXT_LARGE, 1, "V");
+    pros::screen::print(pros::E_TEXT_LARGE_CENTER, 2, "Infrared");
   }
- */
-
-
   //Brain.Screen.print("3249V");
   pros::c::task_delay(250);
 }
@@ -521,7 +518,7 @@ int thread3() { // auto aim thread
 double totalDistance = 0;
 double totalTurretRotation = turretHeading; // to make sure that we don't go overboard and twist/rip wires
 //float maxTotalTurretRotation = 720;
-float pneumaticSpeed = 8;// in inches per second idk how this is that fast
+float pneumaticSpeed =  8;// in inches per second idk how this is that fast
 double relativeVelocity;
 double ejectVelocity;
 double flywheelVelocity;
@@ -533,10 +530,10 @@ if ((redTeam = true)) {
 else {
   target = 8;
 }
+  pros::Motor flyWheel (flyWheel_PORT);
 //task myTask = task(turretPID);
 while(true) {
-  pros::Motor flyWheel (flyWheel_PORT);
-  totalTurretRotation += degHead - lastdegHead;
+  //totalTurretRotation += degHead - lastdegHead;
   velocityXsec = velocityX*1000; // inches per ms to inches per second
   velocityYsec = velocityY*1000;
   relativeVelocity = sqrt(pow(velocityXsec,2)+pow(velocityYsec,2)+2*velocityX*velocityYsec*cos(90-findAngle(target)));
@@ -611,7 +608,13 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+       pros::Task my_task1(thread1);
+       pros::Task my_task2(thread2);
+       pros::Task my_task3(thread3);
+       pros::Task my_task4(thread4);
+       pros::Task my_task5(turretPID);
+}
 
 
 /**
