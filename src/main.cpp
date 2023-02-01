@@ -38,6 +38,7 @@ double positionY;
 double velocityX;
 double velocityY;
 double rotVelocity;
+double dist;
 // blue near the red high goal and red is near the blue high goal  0,0 is the bottom RIGHT of the feild
 // Object coordinates for object locations from 0,0 in inchesf
 // for saftey it can be if X = Y and autonmous = true then break?
@@ -241,7 +242,6 @@ void movePiD(double X, double Y) {
   double factorI = 0.001;
   double factorD = 0.25;
   double error = findDistance(positionX,positionY,X,Y);
-  double distError = findDistance(positionX,positionY,X,Y); 
   double proportional = 0;
   double intergral = 0;
   double derivitave = 0;
@@ -264,12 +264,9 @@ void movePiD(double X, double Y) {
     rightBackMotor.move_velocity(-fixing);
     lastError = error;
     pros::c::delay(10);
-    error = findDistance(positionX,positionY,X,Y);
+    error = error-dist;
     errorAverage = (errorAverage+error+lastError)/3;
     loopCount += 1;
-
-
-
 
     if (loopCount > 75) { // This is so previous larger errors don't break the infinite loop fix
       lastErrorAverage = errorAverage;
@@ -400,7 +397,6 @@ move PID work?
   double encoderVVL = 0;
   double encoderVVR = 0;
   double encoderVVB = 0;
-  double positionLR = 0;
   double positionB = 0;
   double dragDegrees = (dragWheelCirc/360);
   pros::ADIEncoder encoderL (encoderLeftTop_PORT,encoderLeftBottom_PORT);
@@ -428,18 +424,18 @@ move PID work?
     else if ((degHead <= 0)) {
       degHead = degHead+360;
     }
-      positionLR = (((encoderVL+encoderVR-diffrence)/2) - (lastEncoderL+lastEncoderR-pDiffrence)/2);
+      dist = (((encoderVL+encoderVR-diffrence)/2) - (lastEncoderL+lastEncoderR-pDiffrence)/2)*dragDegrees;
       positionB = (encoderVB+backWheelDiffrence) - (lastEncoderB-pBackWheelDiffrence);
  
     if((180 < degHead)) {
-      positionX += (dragDegrees*(cos(radians(degHead))*positionLR+dragDegrees*(sin(radians(degHead))*positionB)))*-1;
-      positionY += (dragDegrees*(sin(radians(degHead))*positionLR+dragDegrees*(cos(radians(degHead))*positionB)))*-1;
+      positionX += ((cos(radians(degHead))*dist+(sin(radians(degHead))*positionB)))*-1;
+      positionY += ((sin(radians(degHead))*dist+(cos(radians(degHead))*positionB)))*-1;
       velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)))*-1;
       velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)))*-1;
     }
     else {
-      positionX += dragDegrees*(cos(radians(degHead))*positionLR+dragDegrees*(sin(radians(degHead))*positionB));
-      positionY += dragDegrees*(sin(radians(degHead))*positionLR+dragDegrees*(cos(radians(degHead))*positionB));
+      positionX += (cos(radians(degHead))*dist+(sin(radians(degHead))*positionB));
+      positionY += (sin(radians(degHead))*dist+(cos(radians(degHead))*positionB));
       velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)));
       velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)));
     }
@@ -515,7 +511,7 @@ pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
 double totalDistance = 0;
 double totalTurretRotation = EXT_GyroTurret.get_value(); // to make sure that we don't go overboard and twist/rip wires
 //float maxTotalTurretRotation = 720;
-float pneumaticSpeed =  8;// in inches per second idk how this is that fast
+//float pneumaticSpeed =  8;// in inches per second idk how this is that fast
 double relativeVelocity;
 double ejectVelocity;
 double flywheelVelocity;
@@ -547,7 +543,7 @@ while(true) {
     }
     // sqrt(g*d^2/(2*cos(a)*)(hg-hr-d*tan(a))
     ejectVelocity = sqrt((gravity*pow(totalDistance,2)/(2*cos(radians(flyWheelAngle)))*(zCoordinates[1]-turretOffsetZ-totalDistance*tan(radians(flyWheelAngle)))))
-    -pneumaticSpeed-relativeVelocity; // inches per second
+    -relativeVelocity; // inches per second
     // RPM = (v*60)/(2*pi*r_wheel*sqrt(i_object/i_wheel+i_deltaWheel))
     flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
  
@@ -556,7 +552,7 @@ while(true) {
   }
   else {
   //  EXT_GyroTurret.get_value() = totalTurretRotation;
-    turretError = degHead;
+    //turretError = degHead;
   }
     pros::c::task_delay(10);
 }
