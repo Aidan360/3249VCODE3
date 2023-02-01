@@ -3,31 +3,27 @@
 //#include "odom.h"
 #define _USE_MATH_DEFINES
 
+
 // Begin project code
 /* TODO:
 Get the robots current velocity either in odom loop or somewhere else
 Create movement safezones. (Autonomous line and potentially the low goal L)
 Have the ability to switch
-
-
 Merge flywheel thread and odom thread
 Account for change of angle in the turret while moving
-Varible flywheel positon change*** after comp probs 
+Varible flywheel positon change*** after comp probs
 Fix turret PID
-Fix PIDS 
-
-
+Fix PIDS
 */
 /* Odometry */
 // PROGRAM USES RADIANS
 double degHead; // in degrees
 double lastdegHead;
-double turretHeading; // in degrees
 double turretError;
 bool turretBreak;
 float turretThreashold = 3;
 float turretOffsetZ = 11.5; // turret offset height from ground so it can properly aim
-float flywheelOffset = 5; // needs to be measured 
+float flywheelOffset = 5; // needs to be measured
 float distanceFromCorners; // Needs calibration
 int discLoad;
 bool intakeDisc;
@@ -80,22 +76,8 @@ float zCoordinates[3] {25,30.5,35.5};
 */
 float offsets[3] {1.53,1.73,8.72};// THIS NEEDS CALIBRATION ONCE ODOMETRY WHEELS ARE IN THE ROBOT < ------------------------------------------------------------
 // Low Z and High Z is for aiming. EX if Turret aim is between Zlow < Yangle < ZHigh then Fire
-
-
 //double M_PI = 3.14159265358979323846264338327950288;
-
-
-
-
 /*Launch Math*/
-
-
-
-
-
-
-
-
 double flyWheelMass = 0.49; // pounds (m)
 double flyWheelRadius = 2; // inches (r)
 double flyWheelCrossArea = M_PI*2*2; // inches (A)
@@ -109,14 +91,6 @@ double discInertia = 0.121254*pow(5.5/2,2); // i_disc
 double flyWheelInertia = flyWheelRadius*pow(2,2); // i_wheel
 // Inertial increase from Compression i_delta = (F*r^2)/(3*E)
 double flyWheelInertialIncrease = (flyWheelCompressionForce*pow((flyWheelRadius*2),2))/(3); // i_wheelDelta
-
-
-
-
-
-
-
-
 /* Display */
 bool thread1On = false;
 bool thread2On = false;
@@ -153,9 +127,6 @@ if (n <= 0) {
 return(n);
 }
 
-
-
-
 double radians(double deg, double x = 0) {
 x = (deg * (M_PI / 180));
 return(x);
@@ -181,6 +152,9 @@ float distfeet;
 
 
 
+
+
+
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -188,6 +162,8 @@ float distfeet;
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
+
+
 
 
   pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -202,13 +178,18 @@ void initialize() {
   pros::ADIEncoder encoderB_initializer (encoderBackTop_PORT,encoderBackBottom_PORT, false);
   pros::ADIDigitalOut indexer_initializer (indexer_PORT);
   pros::ADIDigitalIn intakeSensor_initializer ({{expander_PORT,EXT_IntakeSensorPort}});  
+  pros::ADIGyro EXT_GyroTurret_initializer ({{expander_PORT,EXT_GyroTurretPort}});
+  // EXT_GyroTurret.calibrate;
   pros::lcd::initialize();
   pros::lcd::set_text(1, "Hello PROS User!");
 
+
 }
+
 
 int turretPID() {
 pros::Motor turretMotor (turretMotor_PORT);
+pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
 double factorP = 0.05;
 double factorI = 0.001;
 double factorD = 0.25;
@@ -222,19 +203,19 @@ double lastErrorAverage = 0;
 double loopCount = 0;
 activePID = true;
 while (abs(error) >= 0) {
-    error = (turretHeading - turretError);
+    error = (EXT_GyroTurret.get_value() - turretError);
     intergral = intergral + error;
     derivitave = error - lastError;
     fixing = ((error*factorP)+(intergral*factorI)+(derivitave*factorD));
-  if (turretError > 180) {
+  //if (turretError > 180) {
     turretMotor.move_velocity(fixing);
-  }
-  else {
-    turretMotor.move_velocity(-fixing);
-  }
+  //}
+  //else {
+    //turretMotor.move_velocity(-fixing);
+  //}
     lastError = error;
     pros::c::delay(10);
-    error = turretHeading - turretError;
+    error = EXT_GyroTurret.get_value() - turretError;
     errorAverage = (errorAverage+error+lastError)/3;
     loopCount += 1;
   if (loopCount > 75) { // This is so previous larger errors don't break the infinite loop fix
@@ -259,7 +240,8 @@ void movePiD(double X, double Y) {
   double factorP = 0.5;
   double factorI = 0.001;
   double factorD = 0.25;
-  double error = 12/*findDistance(positionX,positionY,X,Y)*/;
+  double error = findDistance(positionX,positionY,X,Y);
+  double distError = findDistance(positionX,positionY,X,Y); 
   double proportional = 0;
   double intergral = 0;
   double derivitave = 0;
@@ -287,16 +269,21 @@ void movePiD(double X, double Y) {
     loopCount += 1;
 
 
+
+
     if (loopCount > 75) { // This is so previous larger errors don't break the infinite loop fix
       lastErrorAverage = errorAverage;
       errorAverage = 0;
     }
+
   }
   leftFrontMotor.brake();
   leftBackMotor.brake();
   rightFrontMotor.brake();
   rightBackMotor.brake();
 }
+
+
 
 
 void turnPiD(double degr) {
@@ -384,15 +371,22 @@ if ((lockOn =true ) && (autoFire = true)) {
 pros::c::delayUntil(!turretSensor.pressing());
 turretDisc = false;
 }
-
-
-
-
-
 */
 
 
-int thread1() { // Position thread If it ever breaks we dead
+
+
+int thread1() { // Position thread If it ever breaks we dead 
+
+/*
+New Psuedocode
+Get raw distance travelled. 
+send to MOVE pid
+move PID work? 
+*/
+
+
+
   double diffrence = 0;
   double pDiffrence = 0;
   double vDiffrence = 0;
@@ -430,7 +424,6 @@ int thread1() { // Position thread If it ever breaks we dead
     backWheelDiffrence = encoderVB - offsets[0]*diffrence/offsets[2];
     vBackWheelDiffrence = encoderVVB - offsets[0]*diffrence/offsets[2];
 
-
     if ((degHead >= 360)) {
     degHead = degHead-360;
     }
@@ -439,7 +432,7 @@ int thread1() { // Position thread If it ever breaks we dead
     }
       positionLR = (((encoderVL+encoderVR-diffrence)/2) - (lastEncoderL+lastEncoderR-pDiffrence)/2);
       positionB = (encoderVB+backWheelDiffrence) - (lastEncoderB-pBackWheelDiffrence);
-  
+ 
     if((180 < degHead)) {
       positionX += (dragDegrees*(cos(radians(degHead))*positionLR+dragDegrees*(sin(radians(degHead))*positionB)))*-1;
       positionY += (dragDegrees*(sin(radians(degHead))*positionLR+dragDegrees*(cos(radians(degHead))*positionB)))*-1;
@@ -458,6 +451,7 @@ int thread1() { // Position thread If it ever breaks we dead
     pDiffrence = diffrence;
     pBackWheelDiffrence = backWheelDiffrence;
 
+
     encoderL.reset();
     encoderR.reset();
     encoderB.reset();
@@ -469,7 +463,10 @@ int thread2() { // Controller screen thread
 thread2On = true;
 while(true) {
   pros::Controller controller1 (pros::E_CONTROLLER_MASTER);
-  pros::Controller controller2 (pros::E_CONTROLLER_MASTER);
+  pros::Controller controller2 (pros::E_CONTROLLER_PARTNER);
+  pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
+
+
   /* Controller Screen Example
   _____________________________
   /                             \
@@ -478,11 +475,12 @@ while(true) {
   | Power: 89%                  |
   \_____________________________/
   */
-  controller1.clear(); 
+  controller1.clear();
   controller1.print(0,0,"X: ",positionX);
   controller1.print(1,0,"Y: ",positionY);
   controller1.print(2,0,"Heading: ", degHead);
   controller2.print(0,0,"Launch Distance", distfeet);
+  controller2.print(1,0,"TurretDeg", EXT_GyroTurret.get_value());
   /*
   Brain.Screen.setFont(vex::fontType::mono20);
   //Brain.Screen.print(PotentiometerA.angle(degrees));
@@ -514,9 +512,10 @@ while(true) {
 }
 }
 int thread3() { // auto aim thread
+pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
 //float flyWheelContactAngle = 70; // needs calibration
 double totalDistance = 0;
-double totalTurretRotation = turretHeading; // to make sure that we don't go overboard and twist/rip wires
+double totalTurretRotation = EXT_GyroTurret.get_value(); // to make sure that we don't go overboard and twist/rip wires
 //float maxTotalTurretRotation = 720;
 float pneumaticSpeed =  8;// in inches per second idk how this is that fast
 double relativeVelocity;
@@ -542,10 +541,10 @@ while(true) {
   if((aimBot=true && (totalTurretRotation >= 360*4))) {
     // Turret movement very simple :D
     // it isnt D:
-    if ((findAngle(target) - turretThreashold) <= turretHeading <= (findAngle(target) + turretThreashold)) {
+    if ((findAngle(target) - turretThreashold) <= EXT_GyroTurret.get_value() <= (findAngle(target) + turretThreashold)) {
       lockOn = true;
     } // decides if the turret is within acceptable limits
-    else if((activePID = false)&&((findAngle(target) - turretThreashold) <=! turretHeading <=! (findAngle(target) + turretThreashold))) { // prevents infinite PID's
+    else if((activePID = false)&&((findAngle(target) - turretThreashold) <=! EXT_GyroTurret.get_value() <=! (findAngle(target) + turretThreashold))) { // prevents infinite PID's
         turretError = findAngle(target);
     }
     // sqrt(g*d^2/(2*cos(a)*)(hg-hr-d*tan(a))
@@ -553,12 +552,12 @@ while(true) {
     -pneumaticSpeed-relativeVelocity; // inches per second
     // RPM = (v*60)/(2*pi*r_wheel*sqrt(i_object/i_wheel+i_deltaWheel))
     flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
-  
+ 
     flyWheel.move_velocity(flywheelVelocity);
    // flyWheel2.move_velocity(flywheelVelocity,rpm);
   }
   else {
-    turretHeading = totalTurretRotation;
+  //  EXT_GyroTurret.get_value() = totalTurretRotation;
     turretError = degHead;
   }
     pros::c::task_delay(10);
@@ -591,12 +590,16 @@ if (thread1On == true && thread2On == true && thread3On == true && thread4On == 
 }
 
 
+
+
 /**
  * Runs while the robot is in the disabled state of Field Management System or
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
 void disabled() {}
+
+
 
 
 /**
@@ -617,6 +620,8 @@ void competition_initialize() {
 }
 
 
+
+
 /**
  * Runs the user autonomous code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -629,6 +634,8 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {}
+
+
 
 
 /**
@@ -646,14 +653,12 @@ void autonomous() {}
  */
 void opcontrol() {
   pros::Controller controller1 (pros::E_CONTROLLER_MASTER);
-  pros::Controller controller2 (pros::E_CONTROLLER_MASTER);
+  pros::Controller controller2 (pros::E_CONTROLLER_PARTNER);
   pros::Motor leftFrontMotor (leftFrontMotor_PORT);
   pros::Motor leftBackMotor (leftBackMotor_PORT);
   pros::Motor rightFrontMotor (rightFrontMotor_PORT);
   pros::Motor rightBackMotor (rightBackMotor_PORT);
   pros::Motor turretMotor (turretMotor_PORT);
-
-
   float curve = 0.75;
   float left;
   float right;
@@ -661,9 +666,8 @@ void opcontrol() {
   float turn;
   while (true) {
 
-
     power = controller1.get_analog(ANALOG_LEFT_Y);
-    turn = controller1.get_analog(ANALOG_RIGHT_Y);
+    turn = controller1.get_analog(ANALOG_RIGHT_X);
     left = power + turn;
     right = power - turn;
     leftFrontMotor.move(100*(((1-curve)*left)/100+(curve*pow(left/100,7)))); // Conners Move
@@ -679,6 +683,8 @@ void opcontrol() {
     pros::delay(20);
   }
 }
+
+
 
 
 
