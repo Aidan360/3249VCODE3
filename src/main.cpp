@@ -385,8 +385,6 @@ send to MOVE pid
 move PID work? 
 */
 
-
-
   double diffrence = 0;
   double pDiffrence = 0;
   double vDiffrence = 0;
