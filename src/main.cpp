@@ -79,6 +79,10 @@ float offsets[3] {1.53,1.73,8.72};// THIS NEEDS CALIBRATION ONCE ODOMETRY WHEELS
 // Low Z and High Z is for aiming. EX if Turret aim is between Zlow < Yangle < ZHigh then Fire
 //double M_PI = 3.14159265358979323846264338327950288;
 /*Launch Math*/
+
+// Polycarb = 0.1941916032lbs
+// flywheel Weight = 0.24 lbs
+// flywheel = 0.26 lbs
 double flyWheelMass = 0.49; // pounds (m)
 double flyWheelRadius = 2; // inches (r)
 double flyWheelCrossArea = M_PI*2*2; // inches (A)
@@ -89,6 +93,8 @@ double flyWheelGearRatio = 18; // multipler for gearing
 double flyWheelCompressionForce = (flyWheelCrossArea*flyWheelCompression)/(flyWheelRadius*2); // (f)
 // Inertia Calc, m*r^2
 double discInertia = 0.121254*pow(5.5/2,2); // i_disc
+double discMass = 0.121254;
+double massTotal = flyWheelMass+discMass;
 double flyWheelInertia = (flyWheelMass*pow(flyWheelRadius,2))/2; // i_wheel
 // Inertial increase from Compression i_delta = (F*r^2)/(3*E)
 double flyWheelInertialIncrease = (flyWheelCompressionForce*pow((flyWheelRadius*2),2))/(3); // i_wheelDelta
@@ -373,9 +379,6 @@ turretDisc = false;
 }
 */
 
-
-
-
 int thread1() { // Position thread If it ever breaks we dead 
 
 /*
@@ -520,6 +523,8 @@ double ejectVelocity;
 double flywheelVelocity;
 double velocityXsec = velocityX*1000;
 double velocityYsec = velocityY*1000;
+double v_final;
+double springForce = (11501.492602*(M_PI*2*flyWheelRadius))/(flyWheelRadius*2);
 if ((redTeam = true)) {
   target = 7;
 }
@@ -548,7 +553,9 @@ while(true) {
     ejectVelocity = sqrt((gravity*pow(totalDistance,2)/((2*cos(radians(flyWheelAngle)))*(zCoordinates[1]-turretOffsetZ-totalDistance*tan(radians(flyWheelAngle))))))
     -relativeVelocity; // inches per second
     // RPM = (v*60)/(2*pi*r_wheel*sqrt(i_object/i_wheel+i_deltaWheel))
-    flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
+    v_final = sqrt(abs((0.5*discMass*pow(ejectVelocity,2))/(0.5*massTotal)-(0.5*springForce*flyWheelCompression)/(0.5*massTotal)));
+    flywheelVelocity = (v_final*60)/(2*M_PI*flyWheelRadius);
+    //flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
  
     flyWheel.move_velocity(flywheelVelocity);
    // flyWheel2.move_velocity(flywheelVelocity,rpm);
