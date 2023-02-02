@@ -164,7 +164,9 @@ float distfeet;
  */
 void initialize() {
 
-
+  positionX = 9;
+  positionY = 9;
+  degHead = 0;
 
 
   pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -183,6 +185,10 @@ void initialize() {
   // EXT_GyroTurret.calibrate;
   pros::lcd::initialize();
   pros::lcd::set_text(1, "Hello PROS User!");
+
+  positionX = 0;
+  positionY = 0;
+
 
 
 }
@@ -627,7 +633,11 @@ void competition_initialize() {
  * will be brakeped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+  positionX = 130;
+  positionY = 30;
+  movePiD(46,117);
+}
 
 
 
