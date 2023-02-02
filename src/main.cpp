@@ -83,13 +83,13 @@ double flyWheelMass = 0.49; // pounds (m)
 double flyWheelRadius = 2; // inches (r)
 double flyWheelCrossArea = M_PI*2*2; // inches (A)
 double flyWheelCompression = 0.15; // inches (l)
-double flyWheelAngle = 45; // angle in degrees (a)
+double flyWheelAngle = 35; // angle in degrees (a)
 double flyWheelGearRatio = 18; // multipler for gearing
 // Compression Force (F=E*A*l)/r
 double flyWheelCompressionForce = (flyWheelCrossArea*flyWheelCompression)/(flyWheelRadius*2); // (f)
 // Inertia Calc, m*r^2
 double discInertia = 0.121254*pow(5.5/2,2); // i_disc
-double flyWheelInertia = flyWheelRadius*pow(2,2); // i_wheel
+double flyWheelInertia = (flyWheelMass*pow(flyWheelRadius,2))/2; // i_wheel
 // Inertial increase from Compression i_delta = (F*r^2)/(3*E)
 double flyWheelInertialIncrease = (flyWheelCompressionForce*pow((flyWheelRadius*2),2))/(3); // i_wheelDelta
 /* Display */
@@ -103,7 +103,7 @@ float gameTime = 105;
 int null = 0;
 int target;
 bool activePID;
-float dragWheelDiamater = 2.630; // drag wheel radius
+float dragWheelDiamater = 2.75; // drag wheel radius
 double dragWheelCirc = dragWheelDiamater*M_PI;
 double gravity = -386.08858267717; // inches per second
 /* Calculations */
@@ -164,9 +164,6 @@ float distfeet;
  */
 void initialize() {
 
-  positionX = 9;
-  positionY = 9;
-  degHead = 0;
 
 
   pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -548,7 +545,7 @@ while(true) {
         turretError = findAngle(target);
     }
     // sqrt(g*d^2/(2*cos(a)*)(hg-hr-d*tan(a))
-    ejectVelocity = sqrt((gravity*pow(totalDistance,2)/(2*cos(radians(flyWheelAngle)))*(zCoordinates[1]-turretOffsetZ-totalDistance*tan(radians(flyWheelAngle)))))
+    ejectVelocity = sqrt((gravity*pow(totalDistance,2)/((2*cos(radians(flyWheelAngle)))*(zCoordinates[1]-turretOffsetZ-totalDistance*tan(radians(flyWheelAngle))))))
     -relativeVelocity; // inches per second
     // RPM = (v*60)/(2*pi*r_wheel*sqrt(i_object/i_wheel+i_deltaWheel))
     flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
@@ -636,6 +633,7 @@ void competition_initialize() {
 void autonomous() {
   positionX = 130;
   positionY = 30;
+  degHead = 270;
   movePiD(46,117);
 }
 
