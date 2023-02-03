@@ -76,6 +76,7 @@ float zCoordinates[3] {25,30.5,35.5};
 2:Back Odom Wheel
 */
 float offsets[3] {1.53,1.73,8.72};// THIS NEEDS CALIBRATION ONCE ODOMETRY WHEELS ARE IN THE ROBOT < ------------------------------------------------------------
+float leftRightLength = 4; // length between left odom wheel and right odom wheel 
 // Low Z and High Z is for aiming. EX if Turret aim is between Zlow < Yangle < ZHigh then Fire
 //double M_PI = 3.14159265358979323846264338327950288;
 /*Launch Math*/
@@ -404,6 +405,8 @@ move PID work?
   double encoderVVR = 0;
   double encoderVVB = 0;
   double positionB = 0;
+  double pPositionX = 0;
+  double pPositionY = 0;
   double dragDegrees = (dragWheelCirc/360);
   pros::ADIEncoder encoderL (encoderLeftTop_PORT,encoderLeftBottom_PORT);
   pros::ADIEncoder encoderR (encoderRightTop_PORT,encoderRightBottom_PORT);
@@ -418,7 +421,8 @@ move PID work?
     diffrence = encoderVL - encoderVR;
     vDiffrence = encoderVVL - encoderVVR;
     lastdegHead = degHead;
-    degHead += (2*M_PI*offsets[1])/360*(diffrence)*dragDegrees*(180/M_PI);  // tracking offset L and R should be the same no matter what
+    //degHead += (2*M_PI*offsets[1])/360*(diffrence)*dragDegrees*(180/M_PI);  // tracking offset L and R should be the same no matter what
+    degHead += ((diffrence*dragDegrees)/leftRightLength);
     rotVelocity = (2*M_PI*offsets[1]/360*(vDiffrence)*dragDegrees)*(180/M_PI);
     //degHead = (2*offsets[0]*diffrence*dragWheelCirc*180)/pow(360,2);
     backWheelDiffrence = encoderVB - offsets[0]*diffrence/offsets[2];
@@ -436,20 +440,22 @@ move PID work?
     if((180 < degHead)) {
       positionX += ((cos(radians(degHead))*dist+(sin(radians(degHead))*positionB)))*-1;
       positionY += ((sin(radians(degHead))*dist+(cos(radians(degHead))*positionB)))*-1;
-      velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)))*-1;
-      velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)))*-1;
+ //     velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)))*-1;
+ //     velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)))*-1;
     }
     else {
       positionX += (cos(radians(degHead))*dist+(sin(radians(degHead))*positionB));
       positionY += (sin(radians(degHead))*dist+(cos(radians(degHead))*positionB));
-      velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)));
-      velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)));
+  //    velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)));
+  //    velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)));
     }
     lastEncoderL = encoderVL;
     lastEncoderR = encoderVR;
     lastEncoderB = encoderVB;
     pDiffrence = diffrence;
     pBackWheelDiffrence = backWheelDiffrence;
+    velocityX = positionX - pPositionX;
+    velocityY = positionY - pPositionY;
 
 
     encoderL.reset();
