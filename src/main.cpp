@@ -541,8 +541,8 @@ else {
 //task myTask = task(turretPID);
 while(true) {
   //totalTurretRotation += degHead - lastdegHead;
-  velocityXsec = velocityX*1000; // inches per ms to inches per second
-  velocityYsec = velocityY*1000;
+  velocityXsec = velocityX*100; // inches per ms to inches per second
+  velocityYsec = velocityY*100;
   relativeVelocity = sqrt(pow(velocityXsec,2)+pow(velocityYsec,2)+2*velocityX*velocityYsec*cos(90-findAngle(target)));
   totalDistance = sqrt(pow(findDistance(positionX,positionY,coordinateLocations[0][target],coordinateLocations[1][target]),2)
   +pow(tan(radians(flyWheelAngle))*findDistance(positionX,positionY,coordinateLocations[0][target],coordinateLocations[1][target]),2));
