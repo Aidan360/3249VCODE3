@@ -14,10 +14,10 @@
 // Brain 3-Wire Ports
 #define potentiometer_PORT 1
 #define indexer_PORT 2
-#define encoderLeftTop_PORT 3
-#define encoderLeftBottom_PORT 4
-#define encoderRightTop_PORT 5
-#define encoderRightBottom_PORT 6
+#define encoderLeftTop_PORT 5
+#define encoderLeftBottom_PORT 6
+#define encoderRightTop_PORT 3
+#define encoderRightBottom_PORT 4
 #define encoderBackTop_PORT 7
 #define encoderBackBottom_PORT 8
 // Expander Ports

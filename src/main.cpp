@@ -76,7 +76,7 @@ float zCoordinates[3] {25,30.5,35.5};
 2:Back Odom Wheel
 */
 float offsets[3] {1.53,1.73,8.72};// THIS NEEDS CALIBRATION ONCE ODOMETRY WHEELS ARE IN THE ROBOT < ------------------------------------------------------------
-float leftRightLength = 4; // length between left odom wheel and right odom wheel 
+float leftRightLength = 5.5; // length between left odom wheel and right odom wheel 
 // Low Z and High Z is for aiming. EX if Turret aim is between Zlow < Yangle < ZHigh then Fire
 //double M_PI = 3.14159265358979323846264338327950288;
 /*Launch Math*/
@@ -136,7 +136,7 @@ return(n);
 }
 
 double radians(double deg, double x = 0) {
-x = (deg * (M_PI / 180));
+x = (deg*(M_PI/180));
 return(x);
 }
 /* Threads */
@@ -270,8 +270,8 @@ void movePiD(double X, double Y) {
     fixing = proportional+(intergral*factorI)+(derivitave*factorD);
     leftFrontMotor.move_velocity(fixing);
     leftBackMotor.move_velocity(fixing);
-    rightFrontMotor.move_velocity(-fixing);
-    rightBackMotor.move_velocity(-fixing);
+    rightFrontMotor.move_velocity(fixing);
+    rightBackMotor.move_velocity(fixing);
     lastError = error;
     pros::c::delay(10);
     error = error-dist;
@@ -408,60 +408,60 @@ move PID work?
   double pPositionX = 0;
   double pPositionY = 0;
   double dragDegrees = (dragWheelCirc/360);
+  double vDegHead = 0;
   pros::ADIEncoder encoderL (encoderLeftTop_PORT,encoderLeftBottom_PORT);
   pros::ADIEncoder encoderR (encoderRightTop_PORT,encoderRightBottom_PORT);
   pros::ADIEncoder encoderB (encoderBackTop_PORT,encoderBackBottom_PORT);
+    encoderL.reset();
+    encoderR.reset();
+    encoderB.reset();
   while(true) {
-    encoderVL = encoderL.get_value();
-    encoderVR = encoderR.get_value();
-    encoderVB = encoderB.get_value();
+  encoderVL = (encoderL.get_value() - lastEncoderL)*dragDegrees;
+  encoderVR = (encoderR.get_value() - lastEncoderR)*dragDegrees;
+  encoderVB = (encoderB.get_value() - lastEncoderB)*dragDegrees;
+
   //  encoderVVL = encoderL.velocity(dps);
   //  encoderVVR = encoderR.velocity(dps);
   //  encoderVVB = encoderB.velocity(dps);
-    diffrence = encoderVL - encoderVR;
-    vDiffrence = encoderVVL - encoderVVR;
+  
+    //vDiffrence = encoderVVL - encoderVVR;
     lastdegHead = degHead;
     //degHead += (2*M_PI*offsets[1])/360*(diffrence)*dragDegrees*(180/M_PI);  // tracking offset L and R should be the same no matter what
-    degHead += ((diffrence*dragDegrees)/leftRightLength);
-    rotVelocity = (2*M_PI*offsets[1]/360*(vDiffrence)*dragDegrees)*(180/M_PI);
+    degHead += (((encoderVL-encoderVR))/leftRightLength)*(180/M_PI);
+    vDegHead = degHead - lastdegHead;
+    //rotVelocity = (2*M_PI*offsets[1]/360*(vDiffrence)*dragDegrees)*(180/M_PI);
     //degHead = (2*offsets[0]*diffrence*dragWheelCirc*180)/pow(360,2);
-    backWheelDiffrence = encoderVB - offsets[0]*diffrence/offsets[2];
-    vBackWheelDiffrence = encoderVVB - offsets[0]*diffrence/offsets[2];
-
+    //vBackWheelDiffrence = encoderVVB - offsets[0]*diffrence/offsets[2];
+/*
     if ((degHead >= 360)) {
     degHead = degHead-360;
     }
     else if ((degHead <= 0)) {
       degHead = degHead+360;
-    }
-      dist = (((encoderVL+encoderVR-diffrence)/2) - (lastEncoderL+lastEncoderR-pDiffrence)/2)*dragDegrees;
-      positionB = (encoderVB+backWheelDiffrence) - (lastEncoderB-pBackWheelDiffrence);
+    } */
+      dist = ((encoderVR+encoderVL)*sin(radians(degHead)/2))/degHead;
  
-    if((180 < degHead)) {
-      positionX += ((cos(radians(degHead))*dist+(sin(radians(degHead))*positionB)))*-1;
-      positionY += ((sin(radians(degHead))*dist+(cos(radians(degHead))*positionB)))*-1;
+//    if((180 < degHead)) {
+      positionX += ((sin(radians(degHead+vDegHead/2))*dist+(sin(radians(degHead+vDegHead/2))*encoderVB)));
+      positionY += ((cos(radians(degHead+vDegHead/2))*dist-(cos(radians(degHead+vDegHead/2))*encoderVB)));
  //     velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)))*-1;
  //     velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)))*-1;
-    }
-    else {
-      positionX += (cos(radians(degHead))*dist+(sin(radians(degHead))*positionB));
-      positionY += (sin(radians(degHead))*dist+(cos(radians(degHead))*positionB));
+    //}
+  //  else {
+    //  positionX += (cos(radians(degHead))*dist+(sin(radians(degHead))*positionB));
+     // positionY += (sin(radians(degHead))*dist+(cos(radians(degHead))*positionB)); 
   //    velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)));
   //    velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)));
-    }
-    lastEncoderL = encoderVL;
-    lastEncoderR = encoderVR;
-    lastEncoderB = encoderVB;
+    //}
+    lastEncoderL = encoderL.get_value();
+    lastEncoderR = encoderR.get_value();
+    lastEncoderB = encoderB.get_value();
     pDiffrence = diffrence;
     pBackWheelDiffrence = backWheelDiffrence;
     velocityX = positionX - pPositionX;
     velocityY = positionY - pPositionY;
 
 
-    encoderL.reset();
-    encoderR.reset();
-    encoderB.reset();
-    pros::c::task_delay(10);
   // I NEED VELOCITY FOR AIMBOT
   }
 }
@@ -471,8 +471,6 @@ while(true) {
   pros::Controller controller1 (pros::E_CONTROLLER_MASTER);
   pros::Controller controller2 (pros::E_CONTROLLER_PARTNER);
   pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
-
-
   /* Controller Screen Example
   _____________________________
   /                             \
@@ -482,16 +480,24 @@ while(true) {
   \_____________________________/
   */
   controller1.clear();
-  controller1.print(0,0,"X: ",positionX);
-  controller1.print(1,0,"Y: ",positionY);
-  controller1.print(2,0,"Heading: ", degHead);
-  controller2.print(0,0,"Launch Distance", distfeet);
-  controller2.print(1,0,"TurretDeg", EXT_GyroTurret.get_value());
+  controller2.clear();
+  pros::c::task_delay(250);
+  controller1.print(0,0,"X: %i",positionX);
+  pros::c::task_delay(50);
+  controller1.print(1,0,"Y: %i",positionY);
+    pros::c::task_delay(50);
+  controller1.print(2,0,"H: %i", degHead);
+    pros::c::task_delay(50);
+  controller2.print(0,0,"Launch Distance: ", distfeet);
+    pros::c::task_delay(50);
+  controller2.print(1,0,"TurretDeg: ", EXT_GyroTurret.get_value());
+  //pros::c::task_delay(250);
   /*
   Brain.Screen.setFont(vex::fontType::mono20);
   //Brain.Screen.print(PotentiometerA.angle(degrees));
   Brain.Screen.setFont(vex::fontType::mono60);
  */  
+  pros::screen::erase();
   if ((thread1On = true)) {
       pros::screen::set_pen(COLOR_PURPLE);
      pros::screen::print(pros::E_TEXT_LARGE, 1, "3");
@@ -514,7 +520,7 @@ while(true) {
     pros::screen::print(pros::E_TEXT_LARGE_CENTER, 2, "Infrared");
   }
   //Brain.Screen.print("3249V");
-  pros::c::task_delay(250);
+
 }
 }
 int thread3() { // auto aim thread
@@ -624,9 +630,9 @@ void disabled() {}
 void competition_initialize() {
        pros::Task my_task1(thread1);
        pros::Task my_task2(thread2);
-       pros::Task my_task3(thread3);
-       pros::Task my_task4(thread4);
-       pros::Task my_task5(turretPID);
+       //pros::Task my_task3(thread3);
+       //pros::Task my_task4(thread4);
+       //pros::Task my_task5(turretPID);
 }
 
 
@@ -644,10 +650,10 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
-  positionX = 130;
-  positionY = 30;
-  degHead = 270;
-  movePiD(46,117);
+  positionX = 0;
+  positionY = 0;
+  degHead = 0;
+  //movePiD(0,4);
 }
 
 
