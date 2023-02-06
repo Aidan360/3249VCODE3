@@ -4,6 +4,8 @@
 #define _USE_MATH_DEFINES
 
 
+
+
 // Begin project code
 /* TODO:
 Get the robots current velocity either in odom loop or somewhere else
@@ -76,10 +78,21 @@ float zCoordinates[3] {25,30.5,35.5};
 2:Back Odom Wheel
 */
 float offsets[3] {1.53,1.73,8.72};// THIS NEEDS CALIBRATION ONCE ODOMETRY WHEELS ARE IN THE ROBOT < ------------------------------------------------------------
-float leftRightLength = 5.5; // length between left odom wheel and right odom wheel 
+float leftRightLength = 5.5; // length between left odom wheel and right odom wheel
 // Low Z and High Z is for aiming. EX if Turret aim is between Zlow < Yangle < ZHigh then Fire
 //double M_PI = 3.14159265358979323846264338327950288;
+
+
+float trackLength = 15;
+float inchesToDegrees(double inches, double n = 0) {
+  double circ = ((4.125*M_PI)/inches)/360;
+  n = circ;
+  return(n);
+}
+
+
 /*Launch Math*/
+
 
 // Polycarb = 0.1941916032lbs
 // flywheel Weight = 0.24 lbs
@@ -135,6 +148,7 @@ if (n <= 0) {
 return(n);
 }
 
+
 double radians(double deg, double x = 0) {
 x = (deg*(M_PI/180));
 return(x);
@@ -156,7 +170,13 @@ bool redTeam = true;
 bool aimBot = true;
 bool autoFire = true;
 bool lockOn = false;
-float distfeet;
+double distfeet = 0;
+
+
+
+
+
+
 
 
 
@@ -173,6 +193,9 @@ void initialize() {
 
 
 
+
+
+
   pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
   pros::Motor leftBackMotor_initializer (leftBackMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
   pros::Motor rightFrontMotor_initializer (rightFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
@@ -184,18 +207,27 @@ void initialize() {
   pros::ADIEncoder encoderR_initializer (encoderRightTop_PORT,encoderRightBottom_PORT, false);
   pros::ADIEncoder encoderB_initializer (encoderBackTop_PORT,encoderBackBottom_PORT, false);
   pros::ADIDigitalOut indexer_initializer (indexer_PORT);
+  pros::ADIDigitalOut expansion_initializer (expansion_PORT);
   pros::ADIDigitalIn intakeSensor_initializer ({{expander_PORT,EXT_IntakeSensorPort}});  
   pros::ADIGyro EXT_GyroTurret_initializer ({{expander_PORT,EXT_GyroTurretPort}});
+
+
   // EXT_GyroTurret.calibrate;
   pros::lcd::initialize();
   pros::lcd::set_text(1, "Hello PROS User!");
+
 
   positionX = 0;
   positionY = 0;
 
 
 
+
+
+
 }
+
+
 
 
 int turretPID() {
@@ -278,10 +310,12 @@ void movePiD(double X, double Y) {
     errorAverage = (errorAverage+error+lastError)/3;
     loopCount += 1;
 
+
     if (loopCount > 75) { // This is so previous larger errors don't break the infinite loop fix
       lastErrorAverage = errorAverage;
       errorAverage = 0;
     }
+
 
   }
   leftFrontMotor.brake();
@@ -289,6 +323,10 @@ void movePiD(double X, double Y) {
   rightFrontMotor.brake();
   rightBackMotor.brake();
 }
+
+
+
+
 
 
 
@@ -380,14 +418,17 @@ turretDisc = false;
 }
 */
 
-int thread1() { // Position thread If it ever breaks we dead 
+
+int thread1() { // Position thread If it ever breaks we dead
+
 
 /*
 New Psuedocode
-Get raw distance travelled. 
+Get raw distance travelled.
 send to MOVE pid
-move PID work? 
+move PID work?
 */
+
 
   double diffrence = 0;
   double pDiffrence = 0;
@@ -420,10 +461,11 @@ move PID work?
   encoderVR = (encoderR.get_value() - lastEncoderR)*dragDegrees;
   encoderVB = (encoderB.get_value() - lastEncoderB)*dragDegrees;
 
+
   //  encoderVVL = encoderL.velocity(dps);
   //  encoderVVR = encoderR.velocity(dps);
   //  encoderVVB = encoderB.velocity(dps);
-  
+ 
     //vDiffrence = encoderVVL - encoderVVR;
     lastdegHead = degHead;
     //degHead += (2*M_PI*offsets[1])/360*(diffrence)*dragDegrees*(180/M_PI);  // tracking offset L and R should be the same no matter what
@@ -449,7 +491,7 @@ move PID work?
     //}
   //  else {
     //  positionX += (cos(radians(degHead))*dist+(sin(radians(degHead))*positionB));
-     // positionY += (sin(radians(degHead))*dist+(cos(radians(degHead))*positionB)); 
+     // positionY += (sin(radians(degHead))*dist+(cos(radians(degHead))*positionB));
   //    velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)));
   //    velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)));
     //}
@@ -460,6 +502,8 @@ move PID work?
     pBackWheelDiffrence = backWheelDiffrence;
     velocityX = positionX - pPositionX;
     velocityY = positionY - pPositionY;
+
+
 
 
   // I NEED VELOCITY FOR AIMBOT
@@ -480,6 +524,7 @@ while(true) {
   \_____________________________/
   */
   controller1.clear();
+  pros::c::task_delay(250);                                                                                                                                                                                                                                                                                                                                                                                                                              
   controller2.clear();
   pros::c::task_delay(250);
   controller1.print(0,0,"X: %i",positionX);
@@ -488,9 +533,10 @@ while(true) {
     pros::c::task_delay(50);
   controller1.print(2,0,"H: %i", degHead);
     pros::c::task_delay(50);
-  controller2.print(0,0,"Launch Distance: ", distfeet);
+  controller2.print(0,0,"D: %i", distfeet);
     pros::c::task_delay(50);
-  controller2.print(1,0,"TurretDeg: ", EXT_GyroTurret.get_value());
+    //pros::c::task_delay(50);
+  //controller2.print(1,0,"TurretDeg: ", EXT_GyroTurret.get_value());
   //pros::c::task_delay(250);
   /*
   Brain.Screen.setFont(vex::fontType::mono20);
@@ -521,6 +567,7 @@ while(true) {
   }
   //Brain.Screen.print("3249V");
 
+
 }
 }
 int thread3() { // auto aim thread
@@ -547,11 +594,12 @@ else {
 //task myTask = task(turretPID);
 while(true) {
   //totalTurretRotation += degHead - lastdegHead;
-  velocityXsec = velocityX*100; // inches per ms to inches per second
-  velocityYsec = velocityY*100;
-  relativeVelocity = sqrt(pow(velocityXsec,2)+pow(velocityYsec,2)+2*velocityX*velocityYsec*cos(90-findAngle(target)));
-  totalDistance = sqrt(pow(findDistance(positionX,positionY,coordinateLocations[0][target],coordinateLocations[1][target]),2)
-  +pow(tan(radians(flyWheelAngle))*findDistance(positionX,positionY,coordinateLocations[0][target],coordinateLocations[1][target]),2));
+  //velocityXsec = velocityX*100; // inches per ms to inches per second
+  //velocityYsec = velocityY*100;
+  //relativeVelocity = sqrt(pow(velocityXsec,2)+pow(velocityYsec,2)+2*velocityX*velocityYsec*cos(90-findAngle(target)));
+  //totalDistance = sqrt(pow(findDistance(positionX,positionY,coordinateLocations[0][target],coordinateLocations[1][target]),2)
+  totalDistance = distfeet;
+  //+pow(tan(radians(flyWheelAngle))*findDistance(positionX,positionY,coordinateLocations[0][target],coordinateLocations[1][target]),2));
   if((aimBot=true && (totalTurretRotation >= 360*4))) {
     // Turret movement very simple :D
     // it isnt D:
@@ -608,12 +656,20 @@ if (thread1On == true && thread2On == true && thread3On == true && thread4On == 
 
 
 
+
+
+
+
 /**
  * Runs while the robot is in the disabled state of Field Management System or
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
 void disabled() {}
+
+
+
+
 
 
 
@@ -628,12 +684,16 @@ void disabled() {}
  * starts.
  */
 void competition_initialize() {
-       pros::Task my_task1(thread1);
-       pros::Task my_task2(thread2);
+       //pros::Task my_task1(thread1);
+       //pros::Task my_task2(thread2);
        //pros::Task my_task3(thread3);
        //pros::Task my_task4(thread4);
        //pros::Task my_task5(turretPID);
 }
+
+
+
+
 
 
 
@@ -650,11 +710,66 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
+  pros::ADIDigitalOut indexer (indexer_PORT);
+  pros::Motor flyWheel (flyWheel_PORT);
+  pros::Motor intake (intakeMotor_PORT);
+  pros::Motor leftFrontMotor (leftFrontMotor_PORT);
+  pros::Motor leftBackMotor (leftBackMotor_PORT);
+  pros::Motor rightFrontMotor (rightFrontMotor_PORT);
+  pros::Motor rightBackMotor (rightBackMotor_PORT);
+  pros::ADIDigitalOut expansion (expansion_PORT);
+  pros::Motor turretMotor (turretMotor_PORT);
+  /*                                                                                                                                    
+  //leftFrontMotor.tare_position();
+  //leftFrontMotor.tare_position();
+  //leftFrontMotor.tare_position();
+  //leftFrontMotor.tare_position();
   positionX = 0;
   positionY = 0;
   degHead = 0;
+  flyWheel.move_velocity(180);
+  pros::delay(2500);
+  indexer.set_value(true);
+  pros::delay(250);
+  indexer.set_value(false);
+  pros::delay(250);
+  intake.move_velocity(200);
+  pros::delay(5000);
+  intake.brake();
+  pros::delay(250);
+  indexer.set_value(true);
+  pros::delay(250);
+  indexer.set_value(false); */
   //movePiD(0,4);
+  /*
+  intake.move_velocity(200);
+  leftFrontMotor.move(50);
+  leftBackMotor.move(50);
+  rightFrontMotor.move(50);
+  rightBackMotor.move(50);
+  pros::delay(2500);
+  leftFrontMotor.move(0);
+  leftBackMotor.move(0);
+  rightFrontMotor.move(0);
+  rightBackMotor.move(0);
+  turretMotor.move(80);
+  pros::delay(500);
+  indexer.set_value(true);
+  pros::delay(250);
+  indexer.set_value(false);
+  intake.brake();
+  flyWheel.brake();
+  pros::delay(36000);
+  expansion.set_value(true); */
+  //pros::delay(250);
+  //turretMotor.move(127);
+  //pros::delay(1000);
+ 
 }
+
+
+
+
 
 
 
@@ -680,28 +795,74 @@ void opcontrol() {
   pros::Motor rightFrontMotor (rightFrontMotor_PORT);
   pros::Motor rightBackMotor (rightBackMotor_PORT);
   pros::Motor turretMotor (turretMotor_PORT);
-  float curve = 0.75;
+  pros::Motor intake (intakeMotor_PORT);
+  pros::ADIDigitalOut expansion (expansion_PORT);
+  pros::ADIDigitalOut indexer (indexer_PORT);
+  pros::Motor flyWheel (flyWheel_PORT);
+  float curve = 0.25;
   float left;
   float right;
   float power;
   float turn;
+  double discSpeed = 0;
+  distfeet = 0;
+  double vFinal = 0;
+  double flywheelRPM = 0;
+  //bool intake = false;
+  //bool intakeDir = false; // false = forward true = reverse
+  //double springForce = (11501.492602*(M_PI*2*flyWheelRadius))/(flyWheelRadius*2);
   while (true) {
-
+   
     power = controller1.get_analog(ANALOG_LEFT_Y);
     turn = controller1.get_analog(ANALOG_RIGHT_X);
     left = power + turn;
     right = power - turn;
-    leftFrontMotor.move(100*(((1-curve)*left)/100+(curve*pow(left/100,7)))); // Conners Move
-    leftBackMotor.move(100*(((1-curve)*left)/100+(curve*pow(left/100,7))));
-    rightFrontMotor.move(100*(((1-curve)*right)/100+(curve*pow(right/100,7))));
-    rightBackMotor.move(100*(((1-curve)*right)/100+(curve*pow(right/100,7))));
+    leftFrontMotor.move(left); // Conners Move
+    leftBackMotor.move(left);
+    rightFrontMotor.move(right
+    );
+    rightBackMotor.move(right);
+    turretMotor.move(100*(((1-curve)*controller2.get_analog(ANALOG_RIGHT_X))/100+(curve*pow(controller2.get_analog(ANALOG_RIGHT_X)/100,7))));
+    intake.move(controller2.get_analog(ANALOG_LEFT_Y));
+    //controller2.clear();
+    //pros::delay(50);
+    //controller2.print(1,1,"D: %d", distfeet                                                                                                                                                 );
+    // pros::delay(50);
+    //discSpeed = sqrt((gravity*pow(distfeet*12,2)/((2*cos(radians(flyWheelAngle)))*(zCoordinates[1]-turretOffsetZ-(12*distfeet)*tan(radians(flyWheelAngle)))))); // inches per second
+    //vFinal = sqrt(abs((0.5*discMass*pow(discSpeed,2))/(0.5*massTotal)-(0.5*springForce*flyWheelCompression)/(0.5*massTotal)));
+    //flywheelRPM = ((vFinal*60)/(2*M_PI*flyWheelRadius))/18;
+    //flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
+ 
+
+
+    if (controller2.get_digital(DIGITAL_B)) {
+      expansion.set_value(true);
+    }
+    if (controller2.get_digital(DIGITAL_R2)) {
+      indexer.set_value(true);
+      pros::delay(250);
+      indexer.set_value(false);
+    }
+
+
+    if (controller2.get_digital(DIGITAL_UP)) {
+      distfeet = distfeet+10;
+      pros::delay(50);
+    }
+    if (controller2.get_digital(DIGITAL_DOWN)) {
+      distfeet = distfeet-10;
+      pros::delay(50);
+    }
+    flyWheel.move_velocity(distfeet);
+
+
 /*
     leftFrontMotor.spin(forward,(Controller1.Axis3.position() + Controller1.Axis1.position())^2/100,velocityUnits::pct); // Arcade control
     leftBackMotor.spin(forward,(Controller1.Axis3.position() + Controller1.Axis1.position())^2/100,velocityUnits::pct);
     rightFrontMotor.spin(forward,(Controller1.Axis3.position() - Controller1.Axis1.position())^2/100,velocityUnits::pct);
     rightBackMotor.spin(forward,(Controller1.Axis3.position() - Controller1.Axis1.position())^2/100,velocityUnits::pct);
 */
-    pros::delay(20);
+    pros::delay(50);
   }
 }
 

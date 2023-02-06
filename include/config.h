@@ -12,7 +12,7 @@
 //#define eigthMotorPort 8;
 #define expander_PORT 9
 // Brain 3-Wire Ports
-#define potentiometer_PORT 1
+#define expansion_PORT 1
 #define indexer_PORT 2
 #define encoderLeftTop_PORT 5
 #define encoderLeftBottom_PORT 6
