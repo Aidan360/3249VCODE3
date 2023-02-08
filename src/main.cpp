@@ -2,6 +2,15 @@
 #include "config.h"
 //#include "odom.h"
 #define _USE_MATH_DEFINES
+pros::ADIDigitalOut indexer (indexer_PORT);
+pros::Motor flyWheel (flyWheel_PORT);
+pros::Motor intake (intakeMotor_PORT);
+pros::Motor leftFrontMotor (leftFrontMotor_PORT);
+pros::Motor leftBackMotor (leftBackMotor_PORT);
+pros::Motor rightFrontMotor (rightFrontMotor_PORT);
+pros::Motor rightBackMotor (rightBackMotor_PORT);
+pros::ADIDigitalOut expansion (expansion_PORT);
+pros::Motor turretMotor (turretMotor_PORT);
 
 
 
@@ -17,69 +26,8 @@ Varible flywheel positon change*** after comp probs
 Fix turret PID
 Fix PIDS
 */
-/* Odometry */
-// PROGRAM USES RADIANS
-double degHead; // in degrees
-double lastdegHead;
-double turretError;
-bool turretBreak;
-float turretThreashold = 3;
-float turretOffsetZ = 11.5; // turret offset height from ground so it can properly aim
-float flywheelOffset = 5; // needs to be measured
-float distanceFromCorners; // Needs calibration
-int discLoad;
-bool intakeDisc;
-bool turretDisc;
-bool flyWheelDisc;
-// Starting Offsets is how far the sensor is away from the walls or 0,0 on a grid
-double startingOffsetX;
-double startingOffsetY;
-// Grid is for marking objects and where they are
-double positionX;
-double positionY;
-double velocityX;
-double velocityY;
-double rotVelocity;
-double dist;
-// blue near the red high goal and red is near the blue high goal  0,0 is the bottom RIGHT of the feild
-// Object coordinates for object locations from 0,0 in inchesf
-// for saftey it can be if X = Y and autonmous = true then break?
-float middleLineX1 = 0;
-float middleLineX2 = 140.02;
-float middleLineY1 = 0;
-float middleLineXY = 140.02;
-/* Arrays */
-/* Id's for Locations
-0 = X 1 = Y
-0: Blue Ramp
-1: Red Ramp
-2: North Roller
-3: West Roller
-4: East Roller
-5: South Roller
-6: Blue Goal
-7: Red Goal
-*/
-float coordinateLocations[2][8] {
-{0,140.2,110.98,139,29.43,1,122.63,17.78},
-{72.20,72.20,139,110.98,1,29.43,17.78,122.63}
-};
-/* Id's for goal Height
-0: Lowest Goal point
-1: Centered Goal point
-2: Highest Goal point
-*/
-float zCoordinates[3] {25,30.5,35.5};
-/* Id's for Odometry offsets
-0 = distance
-1 = angle
-0:Left Odom Wheel
-1:Right Odom Wheel
-2:Back Odom Wheel
-*/
-float offsets[3] {1.53,1.73,8.72};// THIS NEEDS CALIBRATION ONCE ODOMETRY WHEELS ARE IN THE ROBOT < ------------------------------------------------------------
-float leftRightLength = 5.5; // length between left odom wheel and right odom wheel
-// Low Z and High Z is for aiming. EX if Turret aim is between Zlow < Yangle < ZHigh then Fire
+
+
 //double M_PI = 3.14159265358979323846264338327950288;
 
 
@@ -94,24 +42,6 @@ float inchesToDegrees(double inches, double n = 0) {
 /*Launch Math*/
 
 
-// Polycarb = 0.1941916032lbs
-// flywheel Weight = 0.24 lbs
-// flywheel = 0.26 lbs
-double flyWheelMass = 0.49; // pounds (m)
-double flyWheelRadius = 2; // inches (r)
-double flyWheelCrossArea = M_PI*2*2; // inches (A)
-double flyWheelCompression = 0.15; // inches (l)
-double flyWheelAngle = 35; // angle in degrees (a)
-double flyWheelGearRatio = 18; // multipler for gearing
-// Compression Force (F=E*A*l)/r
-double flyWheelCompressionForce = (flyWheelCrossArea*flyWheelCompression)/(flyWheelRadius*2); // (f)
-// Inertia Calc, m*r^2
-double discInertia = 0.121254*pow(5.5/2,2); // i_disc
-double discMass = 0.121254;
-double massTotal = flyWheelMass+discMass;
-double flyWheelInertia = (flyWheelMass*pow(flyWheelRadius,2))/2; // i_wheel
-// Inertial increase from Compression i_delta = (F*r^2)/(3*E)
-double flyWheelInertialIncrease = (flyWheelCompressionForce*pow((flyWheelRadius*2),2))/(3); // i_wheelDelta
 /* Display */
 bool thread1On = false;
 bool thread2On = false;
@@ -123,9 +53,6 @@ float gameTime = 105;
 int null = 0;
 int target;
 bool activePID;
-float dragWheelDiamater = 2.75; // drag wheel radius
-double dragWheelCirc = dragWheelDiamater*M_PI;
-double gravity = -386.08858267717; // inches per second
 /* Calculations */
 double findAngle(int selector, double x = 0) { // selector uses coordniate list
 //m=(y2-y1)/(x2-x1) slope formula
@@ -141,12 +68,12 @@ dist = sqrt(pow(Y2-Y1,2)+pow(X2-X1,2));
 return(dist );
 }
 // misc
-double abs(double n) {
-if (n <= 0) {
-  n =+ n*-1;
-}
-return(n);
-}
+//double abs(double n) {
+//if (n <= 0) {
+//  n =+ n*-1;
+//}
+//return(n);
+//}
 
 
 double radians(double deg, double x = 0) {
@@ -189,43 +116,8 @@ double distfeet = 0;
  * All other competition modes are blocked by initialize; it is recommended
  * to keep execution time for this mode under a few seconds.
  */
-void initialize() {
 
 
-
-
-
-
-  pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
-  pros::Motor leftBackMotor_initializer (leftBackMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
-  pros::Motor rightFrontMotor_initializer (rightFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
-  pros::Motor rightBackMotor_initializer (rightBackMotor_PORT, pros::E_MOTOR_GEARSET_18, true, pros::E_MOTOR_ENCODER_DEGREES);
-  pros::Motor turretMotor_initializer (turretMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
-  pros::Motor intake_initializer (intakeMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
-  pros::Motor flywheel_initializer (flyWheel_PORT,pros::E_MOTOR_GEARSET_18,false,pros::E_MOTOR_ENCODER_DEGREES);
-  pros::ADIEncoder encoderL_initializer (encoderLeftTop_PORT,encoderLeftBottom_PORT, false);
-  pros::ADIEncoder encoderR_initializer (encoderRightTop_PORT,encoderRightBottom_PORT, false);
-  pros::ADIEncoder encoderB_initializer (encoderBackTop_PORT,encoderBackBottom_PORT, false);
-  pros::ADIDigitalOut indexer_initializer (indexer_PORT);
-  pros::ADIDigitalOut expansion_initializer (expansion_PORT);
-  pros::ADIDigitalIn intakeSensor_initializer ({{expander_PORT,EXT_IntakeSensorPort}});  
-  pros::ADIGyro EXT_GyroTurret_initializer ({{expander_PORT,EXT_GyroTurretPort}});
-
-
-  // EXT_GyroTurret.calibrate;
-  pros::lcd::initialize();
-  pros::lcd::set_text(1, "Hello PROS User!");
-
-
-  positionX = 0;
-  positionY = 0;
-
-
-
-
-
-
-}
 
 
 
@@ -393,7 +285,7 @@ if (finalDeg != null) {
 //Control Functiosn
 /*void expansionControl() {
 expansion = true; // no need to retract this is a one time spring mechanism
-} */pros::ADIDigitalOut indexer (indexer_PORT);
+} */
 pros::ADIDigitalIn intakeSensor ({{expander_PORT,EXT_IntakeSensorPort}});
 void triggerControl() {
 indexer.set_value(true);
@@ -808,11 +700,12 @@ void opcontrol() {
   distfeet = 0;
   double vFinal = 0;
   double flywheelRPM = 0;
+  double turretMove = 0;
   //bool intake = false;
   //bool intakeDir = false; // false = forward true = reverse
   //double springForce = (11501.492602*(M_PI*2*flyWheelRadius))/(flyWheelRadius*2);
   while (true) {
-   
+    turretMove = controller2.get_analog(ANALOG_RIGHT_X);
     power = controller1.get_analog(ANALOG_LEFT_Y);
     turn = controller1.get_analog(ANALOG_RIGHT_X);
     left = power + turn;
@@ -822,7 +715,7 @@ void opcontrol() {
     rightFrontMotor.move(right
     );
     rightBackMotor.move(right);
-    turretMotor.move(100*(((1-curve)*controller2.get_analog(ANALOG_RIGHT_X))/100+(curve*pow(controller2.get_analog(ANALOG_RIGHT_X)/100,7))));
+    turretMotor.move(100*(((1-curve)*turretMove)/100+(curve*pow(turretMove/100,7))));
     intake.move(controller2.get_analog(ANALOG_LEFT_Y));
     //controller2.clear();
     //pros::delay(50);
@@ -865,6 +758,8 @@ void opcontrol() {
     pros::delay(50);
   }
 }
+
+
 
 
 
