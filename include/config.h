@@ -30,7 +30,9 @@ extern float dragWheelDiamater; // drag wheel radius
 extern double dragWheelCirc;
 extern double gravity ; // inches per second
 /*Launch Math*/
-
+extern okapi::ADIEncoder encoderBack;
+extern okapi::ADIEncoder encoderLeft;
+extern okapi::ADIEncoder encoderRight;
 
 // Polycarb = 0.1941916032lbs
 // flywheel Weight = 0.24 lbs

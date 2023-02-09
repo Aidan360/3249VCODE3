@@ -7,7 +7,7 @@ void initialize() {
 
 
 
-
+double M_PI = 3.14159265358979323846264338327950288;
 
     pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
     pros::Motor leftBackMotor_initializer (leftBackMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -25,8 +25,11 @@ void initialize() {
     pros::ADIGyro EXT_GyroTurret_initializer ({{expander_PORT,EXT_GyroTurretPort}});
 
 
-  //  chassis_controller = okapi::ChassisControllerBuilder()
-       // .withOdometry
+  chassis_controller = okapi::ChassisControllerBuilder() 
+    .withSensors(encoderLeft,encoderRight,encoderBack)
+		// Tracking wheel diameter | wheel track (tracking) | middle encoder distance | center tracking wheel diameter
+    .withOdometry({{2.75,5 +4/16.,4,2.75}, okapi::quadEncoderTPR})
+  	.buildOdometry();
     // EXT_GyroTurret.calibrate;
     pros::lcd::initialize();
     pros::lcd::set_text(1, "Hello PROS User!");
