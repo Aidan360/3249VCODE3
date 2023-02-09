@@ -34,7 +34,6 @@
  * shortcuts `Tab` or `T`. All exports to the `okapi` namespace such as enums, constants, units, or
  * functions can be found [here](@ref okapi).
  */
-
 #include "okapi/api/chassis/controller/chassisControllerIntegrated.hpp"
 #include "okapi/api/chassis/controller/chassisControllerPid.hpp"
 #include "okapi/api/chassis/controller/chassisScales.hpp"

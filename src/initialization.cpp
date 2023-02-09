@@ -7,7 +7,7 @@ void initialize() {
 
 
 
-double M_PI = 3.14159265358979323846264338327950288;
+//double M_PI = 3.14159265358979323846264338327950288;
 
     pros::Motor leftFrontMotor_initializer (leftFrontMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
     pros::Motor leftBackMotor_initializer (leftBackMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -26,7 +26,11 @@ double M_PI = 3.14159265358979323846264338327950288;
 
 
   chassis_controller = okapi::ChassisControllerBuilder() 
-    .withSensors(encoderLeft,encoderRight,encoderBack)
+    .withSensors(        
+        ADIEncoder{'A', 'B'}, // left encoder in ADI ports A & B
+        ADIEncoder{'C', 'D', true},  // right encoder in ADI ports C & D (reversed)
+        ADIEncoder{'E', 'F'}  // middle encoder in ADI ports E & F)
+    )
 		// Tracking wheel diameter | wheel track (tracking) | middle encoder distance | center tracking wheel diameter
     .withOdometry({{2.75,5 +4/16.,4,2.75}, okapi::quadEncoderTPR})
   	.buildOdometry();
