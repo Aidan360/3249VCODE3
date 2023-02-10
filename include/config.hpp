@@ -1,6 +1,7 @@
 #include "main.h"
 #include "api.h"
 #include "okapi/api.hpp"
+#include "okapi/impl/device/motor/motorGroup.hpp"
 
 // Smart ports
 #define leftFrontMotor_PORT 1
@@ -34,10 +35,8 @@ extern double gravity ; // inches per second
 extern okapi::ADIEncoder encoderBack;
 extern okapi::ADIEncoder encoderLeft;
 extern okapi::ADIEncoder encoderRight;
-extern okapi::Motor front_left_mtr;
-extern okapi::Motor front_right_mtr;
-extern okapi::Motor back_left_mtr;
-extern okapi::Motor back_right_mtr;
+extern okapi::MotorGroup leftMotors;
+extern okapi::MotorGroup rightMotors;
 // Polycarb = 0.1941916032lbs
 // flywheel Weight = 0.24 lbs
 // flywheel = 0.26 lbs
@@ -56,6 +55,10 @@ extern double massTotal;
 extern double flyWheelInertia; // i_wheel
 // Inertial increase from Compression i_delta = (F*r^2)/(3*E)
 extern double flyWheelInertialIncrease; // i_wheelDelta
+
+extern double turretVelocity;
+extern double turretAcceleration;
+
 /* Odometry */
 // PROGRAM USES RADIANS
 extern double degHead; // in degrees
@@ -89,33 +92,13 @@ extern float middleLineX2;
 extern float middleLineY1;
 extern float middleLineXY;
 extern std::shared_ptr<okapi::OdomChassisController> chassis_controller;
-/* Arrays */
-/* Id's for Locations
-0 = X 1 = Y
-0: Blue Ramp
-1: Red Ramp
-2: North Roller
-3: West Roller
-4: East Roller
-5: South Roller
-6: Blue Goal
-7: Red Goal
-*/
-extern float coordinateLocations[2][8];
-/* Id's for goal Height
-0: Lowest Goal point
-1: Centered Goal point
-2: Highest Goal point
-*/
-extern float zCoordinates[3];
-/* Id's for Odometry offsets
-0 = distance
-1 = angle
-0:Left Odom Wheel
-1:Right Odom Wheel
-2:Back Odom Wheel
-*/
+
 extern float offsets[3];// THIS NEEDS CALIBRATION ONCE ODOMETRY WHEELS ARE IN THE ROBOT < ------------------------------------------------------------
 extern float leftRightLength; // length between left odom wheel and right odom wheel
 // Low Z and High Z is for aiming. EX if Turret aim is between Zlow < Yangle < ZHigh then Fire
 
+extern bool redTeam;
+extern int target;
+extern bool aimBot;
+extern bool flyWheelCalc;
+extern bool lockOn;

@@ -1,11 +1,12 @@
 #include "main.h"
-#include "config.h"
+#include "config.hpp"
 #include "okapi/api.hpp"
-
+okapi::MotorGroup leftMotors = {1,2};
+okapi::MotorGroup rightMotors = {3,4};
+okapi::ADIEncoder encoderLeft = {'C','D'};
+okapi::ADIEncoder encoderRight = {'E','F'};
+okapi::ADIEncoder encoderBack = {'G','H'};
 void initialize() {
-
-
-
 
 //double M_PI = 3.14159265358979323846264338327950288;
 
@@ -33,23 +34,30 @@ void initialize() {
 
   chassis_controller = okapi::ChassisControllerBuilder() 
     .withMotors (
-      okapi::MotorGroup::MotorGroup{1,2},
-      okapi::MotorGroup::MotorGroup{3,4}
+      leftMotors,
+      rightMotors
     )
     //		// Gearset | gear ratio | wheel diameter | wheel track (driving) | TPR
 	//	.withDimensions({okapi::AbstractMotor::gearset::green, (1./1.)}, {{3.25_in, 15._in + 15._in/16.}, okapi::imev5GreenTPR})
     .withDimensions(
-      {okapi::AbstractMotor::gearset::green, (1/1)}, 
+      {okapi::AbstractMotor::gearset::green, 
+      (1./1.)}, 
       {{4.125, 
       15.75}, 
       okapi::imev5GreenTPR})
     .withSensors(        
-        okapi::ADIEncoder::ADIEncoder{'C','D'}, // left encoder in ADI ports A & B
-        okapi::ADIEncoder::ADIEncoder{'E', 'F', true},  // right encoder in ADI ports C & D (reversed)
-        okapi::ADIEncoder::ADIEncoder{'G', 'H'}  // middle encoder in ADI ports E & F)
+        encoderLeft, // left encoder in ADI ports A & B
+        encoderRight,  // right encoder in ADI ports C & D (reversed)
+        encoderBack // middle encoder in ADI ports E & F)
     )
 		// Tracking wheel diameter | wheel track (tracking) | middle encoder distance | center tracking wheel diameter
-    .withOdometry({{2.75,5 +4/16.,4,2.75}, okapi::quadEncoderTPR})
+    .withOdometry(
+      {
+        {2.75,
+        5.5,
+        4,
+        2.75}, 
+      okapi::quadEncoderTPR})
   	.buildOdometry();
     chassis_model = std::dynamic_pointer_cast<okapi::SkidSteerModel>(chassis_controller -> getModel());
 	  //chassis_max_vel = chassis_model -> getMaxVelocity();
@@ -57,74 +65,40 @@ void initialize() {
     pros::lcd::initialize();
     pros::lcd::set_text(1, "Hello PROS User!");
 
-    chassis_controller -> setState(0,0,0);
+  //   chassis_controller -> setState(0,0,0);
     positionX = 0;
     positionY = 0;
     dragWheelDiamater = 2.75; // drag wheel radius
      dragWheelCirc = dragWheelDiamater*M_PI;
      gravity = -386.08858267717; // inches per second
-/*Launch Math*/
+  /*Launch Math*/
 
 
-// Polycarb = 0.1941916032lbs
-// flywheel Weight = 0.24 lbs
-// flywheel = 0.26 lbs
+  // Polycarb = 0.1941916032lbs
+  // flywheel Weight = 0.24 lbs
+  // flywheel = 0.26 lbs
   flyWheelMass = 0.49; // pounds (m)
   flyWheelRadius = 2; // inches (r)
   flyWheelCrossArea = M_PI*2*2; // inches (A)
   flyWheelCompression = 0.15; // inches (l)
   flyWheelAngle = 35; // angle in degrees (a)
   flyWheelGearRatio = 18; // multipler for gearing
-// Compression Force (F=E*A*l)/r
+  // Compression Force (F=E*A*l)/r
   flyWheelCompressionForce = (flyWheelCrossArea*flyWheelCompression)/(flyWheelRadius*2); // (f)
-// Inertia Calc, m*r^2
+  // Inertia Calc, m*r^2
   discInertia = 0.121254*pow(5.5/2,2); // i_disc
   discMass = 0.121254;
   massTotal = flyWheelMass+discMass;
   flyWheelInertia = (flyWheelMass*pow(flyWheelRadius,2))/2; // i_wheel
-// Inertial increase from Compression i_delta = (F*r^2)/(3*E)
+  // Inertial increase from Compression i_delta = (F*r^2)/(3*E)
   flyWheelInertialIncrease = (flyWheelCompressionForce*pow((flyWheelRadius*2),2))/(3); // i_wheelDelta
-turretThreashold = 3;
-turretOffsetZ = 11.5; // turret offset height from ground so it can properly aim
-flywheelOffset = 5; // needs to be measured
-middleLineX1 = 0;
-middleLineX2 = 140.02;
-middleLineY1 = 0;
-middleLineXY = 140.02;
-/* Arrays */
-/* Id's for Locations
-0 = X 1 = Y
-0: Blue Ramp
-1: Red Ramp
-2: North Roller
-3: West Roller
-4: East Roller
-5: South Roller
-6: Blue Goal
-7: Red Goal
-*/
-/*coordinateLocations[2][8] = {
-{0,140.2,110.98,139,29.43,1,122.63,17.78},
-{72.20,72.20,139,110.98,1,29.43,17.78,122.63}
-}; */
-/* Id's for goal Height
-0: Lowest Goal point
-1: Centered Goal point
-2: Highest Goal point
-*/
-//zCoordinates[3] = {25,30.5,35.5};
-/* Id's for Odometry offsets
-0 = distance
-1 = angle
-0:Left Odom Wheel
-1:Right Odom Wheel
-2:Back Odom Wheel
-*/
-//offsets[3] = {1.53,1.73,8.72};// THIS NEEDS CALIBRATION ONCE ODOMETRY WHEELS ARE IN THE ROBOT < ------------------------------------------------------------
-leftRightLength = 5.5; // length between left odom wheel and right odom wheel
-// Low Z and High Z is for aiming. EX if Turret aim is between Zlow < Yangle < ZHigh then Fire
-
-
+  turretThreashold = 3;
+  turretOffsetZ = 11.5; // turret offset height from ground so it can properly aim
+  flywheelOffset = 5; // needs to be measured
+  middleLineX1 = 0;
+  middleLineX2 = 140.02;
+  middleLineY1 = 0;
+  middleLineXY = 140.02;
 
 }
 
