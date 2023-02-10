@@ -26,6 +26,7 @@
 #define EXT_FlywheelSensorPort 2
 #define EXT_ExpansionPneumaticPort 3
 #define EXT_GyroTurretPort 4
+extern std::shared_ptr<okapi::SkidSteerModel> chassis_model;
 extern float dragWheelDiamater; // drag wheel radius
 extern double dragWheelCirc;
 extern double gravity ; // inches per second
@@ -33,7 +34,10 @@ extern double gravity ; // inches per second
 extern okapi::ADIEncoder encoderBack;
 extern okapi::ADIEncoder encoderLeft;
 extern okapi::ADIEncoder encoderRight;
-
+extern okapi::Motor front_left_mtr;
+extern okapi::Motor front_right_mtr;
+extern okapi::Motor back_left_mtr;
+extern okapi::Motor back_right_mtr;
 // Polycarb = 0.1941916032lbs
 // flywheel Weight = 0.24 lbs
 // flywheel = 0.26 lbs
@@ -65,6 +69,7 @@ extern float distanceFromCorners; // Needs calibration
 extern int discLoad;
 extern bool intakeDisc;
 extern bool turretDisc;
+
 extern bool flyWheelDisc;
 // Starting Offsets is how far the sensor is away from the walls or 0,0 on a grid
 extern double startingOffsetX;

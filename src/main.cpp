@@ -464,6 +464,9 @@ while(true) {
 }
 int thread3() { // auto aim thread
 pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
+positionX = chassis_controller -> getState().x.convert(okapi::inch);
+positionY = chassis_controller -> getState().y.convert(okapi::inch);
+degHead = chassis_controller -> getState().theta.convert(okapi::degree);
 //float flyWheelContactAngle = 70; // needs calibration
 double totalDistance = 0;
 double totalTurretRotation = EXT_GyroTurret.get_value(); // to make sure that we don't go overboard and twist/rip wires
@@ -502,11 +505,10 @@ while(true) {
         turretError = findAngle(target);
     }
     // sqrt(g*d^2/(2*cos(a)*)(hg-hr-d*tan(a))
-    ejectVelocity = sqrt((gravity*pow(totalDistance,2)/((2*cos(radians(flyWheelAngle)))*(zCoordinates[1]-turretOffsetZ-totalDistance*tan(radians(flyWheelAngle))))))
-    -relativeVelocity; // inches per second
+    ejectVelocity = sqrt((gravity*pow(totalDistance,2)/((2*cos(radians(flyWheelAngle)))*(zCoordinates[1]-turretOffsetZ-totalDistance*tan(radians(flyWheelAngle)))))); // inches per second
     // RPM = (v*60)/(2*pi*r_wheel*sqrt(i_object/i_wheel+i_deltaWheel))
     v_final = sqrt(abs((0.5*discMass*pow(ejectVelocity,2))/(0.5*massTotal)-(0.5*springForce*flyWheelCompression)/(0.5*massTotal)));
-    flywheelVelocity = (v_final*60)/(2*M_PI*flyWheelRadius);
+    flywheelVelocity = (ejectVelocity*60)/(2*M_PI*flyWheelRadius);
     //flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
  
     flyWheel.move_velocity(flywheelVelocity);
@@ -737,7 +739,7 @@ void opcontrol() {
       indexer.set_value(false);
     }
 
-
+/*
     if (controller2.get_digital(DIGITAL_UP)) {
       distfeet = distfeet+10;
       pros::delay(50);
@@ -745,7 +747,7 @@ void opcontrol() {
     if (controller2.get_digital(DIGITAL_DOWN)) {
       distfeet = distfeet-10;
       pros::delay(50);
-    }
+    } */
     flyWheel.move_velocity(distfeet);
 
 

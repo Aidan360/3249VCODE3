@@ -23,22 +23,41 @@ void initialize() {
     pros::ADIDigitalOut expansion_initializer (expansion_PORT);
     pros::ADIDigitalIn intakeSensor_initializer ({{expander_PORT,EXT_IntakeSensorPort}});  
     pros::ADIGyro EXT_GyroTurret_initializer ({{expander_PORT,EXT_GyroTurretPort}});
-
+    pros::ADIEncoder encoderL (encoderLeftTop_PORT,encoderLeftBottom_PORT);
+    pros::ADIEncoder encoderR (encoderRightTop_PORT,encoderRightBottom_PORT);
+    pros::ADIEncoder encoderB (encoderBackTop_PORT,encoderBackBottom_PORT);
+    encoderL.reset();
+    encoderR.reset();
+    encoderB.reset();
+    pros::delay(500);
 
   chassis_controller = okapi::ChassisControllerBuilder() 
+    .withMotors (
+      okapi::MotorGroup::MotorGroup{1,2},
+      okapi::MotorGroup::MotorGroup{3,4}
+    )
+    //		// Gearset | gear ratio | wheel diameter | wheel track (driving) | TPR
+	//	.withDimensions({okapi::AbstractMotor::gearset::green, (1./1.)}, {{3.25_in, 15._in + 15._in/16.}, okapi::imev5GreenTPR})
+    .withDimensions(
+      {okapi::AbstractMotor::gearset::green, (1/1)}, 
+      {{4.125, 
+      15.75}, 
+      okapi::imev5GreenTPR})
     .withSensors(        
-        ADIEncoder{'A', 'B'}, // left encoder in ADI ports A & B
-        ADIEncoder{'C', 'D', true},  // right encoder in ADI ports C & D (reversed)
-        ADIEncoder{'E', 'F'}  // middle encoder in ADI ports E & F)
+        okapi::ADIEncoder::ADIEncoder{'C','D'}, // left encoder in ADI ports A & B
+        okapi::ADIEncoder::ADIEncoder{'E', 'F', true},  // right encoder in ADI ports C & D (reversed)
+        okapi::ADIEncoder::ADIEncoder{'G', 'H'}  // middle encoder in ADI ports E & F)
     )
 		// Tracking wheel diameter | wheel track (tracking) | middle encoder distance | center tracking wheel diameter
     .withOdometry({{2.75,5 +4/16.,4,2.75}, okapi::quadEncoderTPR})
   	.buildOdometry();
+    chassis_model = std::dynamic_pointer_cast<okapi::SkidSteerModel>(chassis_controller -> getModel());
+	  //chassis_max_vel = chassis_model -> getMaxVelocity();
     // EXT_GyroTurret.calibrate;
     pros::lcd::initialize();
     pros::lcd::set_text(1, "Hello PROS User!");
 
-
+    chassis_controller -> setState(0,0,0);
     positionX = 0;
     positionY = 0;
     dragWheelDiamater = 2.75; // drag wheel radius
