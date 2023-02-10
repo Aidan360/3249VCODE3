@@ -53,12 +53,12 @@ float gameTime = 105;
 int null = 0;
 int target;
 bool activePID;
-/* Calculations */
+/* Calculations */ /*
 double findAngle(int selector, double x = 0) { // selector uses coordniate list
 //m=(y2-y1)/(x2-x1) slope formula
 x = (180/M_PI)/(atan((positionY - coordinateLocations[1][selector])/(positionX - coordinateLocations[0][selector])));
 return(x);
-}
+} */
 double findAngleMove(double X,double Y,double dest = 0) { // in degrees NOT radains
 dest = (180/M_PI)*(atan((Y - positionY)/( X- positionX)));
 return(dest);
