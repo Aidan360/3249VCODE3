@@ -1,4 +1,3 @@
-#include "main.h"
 #include "api.h"
 #include "okapi/api.hpp"
 #include "okapi/impl/device/motor/motorGroup.hpp"
@@ -102,3 +101,5 @@ extern int target;
 extern bool aimBot;
 extern bool flyWheelCalc;
 extern bool lockOn;
+
+extern int flywheelPIDFF();

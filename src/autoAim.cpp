@@ -1,5 +1,4 @@
 #include "main.h"
-#include "config.hpp"
 #include "okapi/api/units/QAngularSpeed.hpp"
 #include "pros/apix.h"
 #include <cmath>
@@ -178,8 +177,8 @@ int flywheelPIDFF() {
         double kI = 0.001; // Integral factor, Changes based on time of error
         double kD = 0.2; // Derivate factor, Changes based on the rate of change in error
         // FF Factors 
-        double kS = 0.1; // Minimum voltage to get the motor moving
-        double kV = 0.5; // voltage required to sustain velocity
+        double kS = 0.9; // Minimum voltage to get the motor moving
+        double kV = 0.85; // voltage required to sustain velocity
         double kA = 1; // voltage required accelerate
     // Values 
     
@@ -196,16 +195,13 @@ int flywheelPIDFF() {
         double pidVoltOutput; // Output = kP*error + kI*Integral[error] + kD*Derivative[error]
         double ffVoltOutput; // output = (kS * sgn(V)) + (kV * V) + (kA * A) + kG
     while (true) {
-        error = flyWheel.get_actual_velocity()*18 - flyWheelVelocityE(zCoordinates[1],totalDistance);
+        error = flyWheel.get_actual_velocity()*18 - flyWheelVelocityE(zCoordinates[1],2);
         integral = integral+error; // integral scales overtime
         derivative = error-lastError; // derivative changes based on feedback 
       
         pidVoltOutput = kP*error + kI*integral + kD*derivative; // PID final calculation
         ffVoltOutput = (kS* sgn(turretVelocity))+(kV*turretVelocity) + (kA * turretAcceleration); // feed forward final calculation
         output = pidVoltOutput + ffVoltOutput; // combines PID + FF
-        if (output < 12) {
-            output = 12;
-        }
         flyWheel.move_voltage(output); // Final output to voltages. Voltages are powerful enough to move the turret whenever it wants to 
         lowerLimit = flyWheelVelocityE(zCoordinates[0],totalDistance);
         upperLimit = flyWheelVelocityE(zCoordinates[2],totalDistance);

@@ -309,7 +309,8 @@
       }
     },
     "upload_options": {
-      "icon": "pros"
+      "icon": "X",
+      "slot": 1
     }
   }
 }

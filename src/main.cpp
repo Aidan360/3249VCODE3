@@ -1,5 +1,4 @@
 #include "main.h"
-#include "config.hpp"
 //#include "odom.h"
 #define _USE_MATH_DEFINES
 pros::ADIDigitalOut indexer (indexer_PORT);
@@ -62,11 +61,11 @@ return(x);
 double findAngleMove(double X,double Y,double dest = 0) { // in degrees NOT radains
 dest = (180/M_PI)*(atan((Y - positionY)/( X- positionX)));
 return(dest);
-}
-double findDistance(double X1, double Y1, double X2, double Y2, double dist = 0) {
+} 
+/*double findDistance(double X1, double Y1, double X2, double Y2, double dist = 0) {
 dist = sqrt(pow(Y2-Y1,2)+pow(X2-X1,2));
 return(dist );
-}
+} */
 // misc
 //double abs(double n) {
 //if (n <= 0) {
@@ -75,11 +74,11 @@ return(dist );
 //return(n);
 //}
 
-
+/*
 double radians(double deg, double x = 0) {
 x = (deg*(M_PI/180));
 return(x);
-}
+} */
 /* Threads */
 /* How to make threads
 void thread1() {
@@ -106,7 +105,8 @@ double distfeet = 0;
  * to keep execution time for this mode under a few seconds.
  */
 
-//Autonomous functions
+//Autonomous functions 
+/*
 void movePiD(double X, double Y) {
   pros::Motor leftFrontMotor (leftFrontMotor_PORT);
   pros::Motor leftBackMotor (leftBackMotor_PORT);
@@ -126,9 +126,7 @@ void movePiD(double X, double Y) {
   double lastErrorAverage = 0;
   double loopCount = 0;
   while (abs(error) >= 0) {
-    /*if ((abs(lastErrorAverage) - 0.01) < (abs(lastError) < (abs(lastErrorAverage) + 0.01))) { // preventing infinite correct loop
-    break;
-    } */
+
     proportional = error*factorP;
     intergral = intergral + error;
     derivitave = error - lastError;
@@ -215,7 +213,7 @@ movePiD(X,Y);
 if (finalDeg != null) {
   turnPiD(finalDeg);
 }
-}
+} */
 //Control Functiosn
 /*void expansionControl() {
 expansion = true; // no need to retract this is a one time spring mechanism
@@ -307,11 +305,11 @@ move PID work?
     else if ((degHead <= 0)) {
       degHead = degHead+360;
     } */
-      dist = ((encoderVR+encoderVL)*sin(radians(degHead)/2))/degHead;
+ //     dist = ((encoderVR+encoderVL)*sin(radians(degHead)/2))/degHead;
  
 //    if((180 < degHead)) {
-      positionX += ((sin(radians(degHead+vDegHead/2))*dist+(sin(radians(degHead+vDegHead/2))*encoderVB)));
-      positionY += ((cos(radians(degHead+vDegHead/2))*dist-(cos(radians(degHead+vDegHead/2))*encoderVB)));
+  //    positionX += ((sin(radians(degHead+vDegHead/2))*dist+(sin(radians(degHead+vDegHead/2))*encoderVB)));
+  //    positionY += ((cos(radians(degHead+vDegHead/2))*dist-(cos(radians(degHead+vDegHead/2))*encoderVB)));
  //     velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)))*-1;
  //     velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)))*-1;
     //}
@@ -438,8 +436,9 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
+
 void competition_initialize() {
-       //pros::Task my_task1(thread1);
+       pros::Task my_task1(flywheelPIDFF);
        //pros::Task my_task2(thread2);
        //pros::Task my_task3(thread3);
        //pros::Task my_task4(thread4);
@@ -467,7 +466,10 @@ void autonomous() {
   pros::Motor rightBackMotor (rightBackMotor_PORT);
   pros::ADIDigitalOut expansion (expansion_PORT);
   pros::Motor turretMotor (turretMotor_PORT);
-  /*                                                                                                                                    
+  pros::Task my_task1(flywheelPIDFF);
+  //flyWheel.move_voltage(950);
+  /*    
+
   //leftFrontMotor.tare_position();
   //leftFrontMotor.tare_position();
   //leftFrontMotor.tare_position();

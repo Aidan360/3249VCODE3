@@ -1,11 +1,16 @@
 #include "main.h"
-#include "config.hpp"
 #include "okapi/api.hpp"
+#include "initialization.hpp"
 okapi::MotorGroup leftMotors = {1,2};
 okapi::MotorGroup rightMotors = {3,4};
 okapi::ADIEncoder encoderLeft = {'C','D'};
 okapi::ADIEncoder encoderRight = {'E','F'};
 okapi::ADIEncoder encoderBack = {'G','H'};
+double positionX = 0;
+double positionY = 0;
+float dragWheelDiamater = 2.75; // drag wheel radius
+double dragWheelCirc = dragWheelDiamater*M_PI;
+double gravity = -386.08858267717; // inches per second
 void initialize() {
 
 //double M_PI = 3.14159265358979323846264338327950288;
@@ -32,7 +37,7 @@ void initialize() {
     encoderB.reset();
     pros::delay(500);
 
-  chassis_controller = okapi::ChassisControllerBuilder() 
+  std::shared_ptr<okapi::OdomChassisController> chassis_controller = okapi::ChassisControllerBuilder() 
     .withMotors (
       leftMotors,
       rightMotors
@@ -59,24 +64,21 @@ void initialize() {
         2.75}, 
       okapi::quadEncoderTPR})
   	.buildOdometry();
-    chassis_model = std::dynamic_pointer_cast<okapi::SkidSteerModel>(chassis_controller -> getModel());
+    std::shared_ptr<okapi::SkidSteerModel> chassis_model = std::dynamic_pointer_cast<okapi::SkidSteerModel>(chassis_controller -> getModel());
 	  //chassis_max_vel = chassis_model -> getMaxVelocity();
     // EXT_GyroTurret.calibrate;
     pros::lcd::initialize();
     pros::lcd::set_text(1, "Hello PROS User!");
 
   //   chassis_controller -> setState(0,0,0);
-    positionX = 0;
-    positionY = 0;
-    dragWheelDiamater = 2.75; // drag wheel radius
-     dragWheelCirc = dragWheelDiamater*M_PI;
-     gravity = -386.08858267717; // inches per second
+
   /*Launch Math*/
 
 
   // Polycarb = 0.1941916032lbs
   // flywheel Weight = 0.24 lbs
-  // flywheel = 0.26 lbs
+  // flywheel = 0.26 lbs 
+  /*
   flyWheelMass = 0.49; // pounds (m)
   flyWheelRadius = 2; // inches (r)
   flyWheelCrossArea = M_PI*2*2; // inches (A)
@@ -98,7 +100,7 @@ void initialize() {
   middleLineX1 = 0;
   middleLineX2 = 140.02;
   middleLineY1 = 0;
-  middleLineXY = 140.02;
+  middleLineXY = 140.02; */
 
 }
 
