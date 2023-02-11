@@ -1,7 +1,6 @@
 #include "main.h"
-#include "okapi/api/units/QAngularSpeed.hpp"
-#include "pros/apix.h"
-#include <cmath>
+//#include "pros/apix.h"
+//#include <cmath>
 //#include "odom.h"
   /* Arrays */
   /* Id's for Locations
@@ -28,41 +27,8 @@
 /*Formulas*/
 
 // distance formula
-double findDistance(double X1, double Y1, double X2, double Y2, double dist = 0) {
-    dist = sqrt(pow(Y2-Y1,2)+
-    pow(X2-X1,2));
-    return(dist);
-}
-// degrees to radians formula 
-double radians(double deg, double x = 0) {
-    x = (deg*(M_PI/180));
-    return(x);
-}
-// radians to degrees formula
-double degrees(double rad, double x = 0) {
-    x = (rad*(180/M_PI));
-    return(x);
-}
-int sgn(int n) {
-    if (n > 0) return 1;
-    if (n < 0) return -1;
-    return 0;
-}
-double flyWheelVelocity(float target,float totalDistance, float angle = flyWheelAngle) {
-    double a = sqrt(
-            (gravity*pow(totalDistance,2)
-            /((2*cos(radians(angle)))*(target-turretOffsetZ-totalDistance*tan(radians(angle))))));
-    double n = (a*60)/(2*M_PI*flyWheelRadius);
-    return(n);
-}
-double flyWheelVelocityE(float target,float totalDistance, float angle = flyWheelAngle) {
-    double a = sqrt(
-            (gravity*pow(totalDistance,2)
-            /((2*cos(radians(angle)))*(target-turretOffsetZ-totalDistance*tan(radians(angle))))));
-    double v_final = sqrt((0.5 * discMass * pow(a,2)) / (0.5 * (flyWheelMass+discMass)));
-    double n = (v_final*60)/(2*M_PI*flyWheelRadius);
-    return(n);
-}
+
+
 //v_final = sqrt((0.5 * m_object * v^2) / (0.5 * m_total))
 
 

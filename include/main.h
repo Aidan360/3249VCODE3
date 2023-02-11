@@ -36,6 +36,7 @@
 
 #include "api.h"
 #include "initialization.hpp"
+#include "GlobalVarAndFormulas.hpp"
 /**
  * You should add more #includes here
  */
