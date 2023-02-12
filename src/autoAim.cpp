@@ -75,19 +75,19 @@ int turretPID() {
     return(1);
 }
 // Pissing Incels degrade at Fur fest (PID controller + Feed forward)
-int turretPIDFF() {
+void turretPIDFF() {
     pros::Motor turretMotor (turretMotor_PORT);
     pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
     
     // Factors 
         // PID factors
-        double kP = 0.15; // Proportional factor, Changes proportionally to error
-        double kI = 0.001; // Integral factor, Changes based on time of error
-        double kD = 0.2; // Derivate factor, Changes based on the rate of change in error
+        double kP = 0.5; // Proportional factor, Changes proportionally to error
+        double kI = 0.000; // Integral factor, Changes based on time of error
+        double kD = 0; // Derivate factor, Changes based on the rate of change in error
         // FF Factors 
-        double kS = 0.1; // Minimum voltage to get the motor moving
-        double kV = 0.1; // voltage required to sustain velocity
-        double kA = 0.01; // voltage required accelerate
+        double kS = 1.6; // Minimum voltage to get the motor moving
+        double kV = 1.7; // voltage required to sustain velocity
+        double kA = 2.3; // voltage required accelerate
     // Values 
         double integral = 0;
         double derivative = 0;
@@ -104,15 +104,15 @@ int turretPIDFF() {
             (positionY - (coordinateLocations[1][target] + goalRadius)),
             (positionX - (coordinateLocations[0][target] + goalRadius)));
         double pidVoltOutput; // Output = kP*error + kI*Integral[error] + kD*Derivative[error]
-        double ffVoltOutput; // output = (kS * sgn(V)) + (kV * V) + (kA * A) + kG
+        double ffVoltOutput = 0; // output = (kS * sgn(V)) + (kV * V) + (kA * A) + kG
     while (true) {
         error = EXT_GyroTurret.get_value()-atan2(positionY-coordinateLocations[1][target],positionX-coordinateLocations[0][target]);
         integral = integral+error; // integral scales overtime
         derivative = error-lastError; // derivative changes based on feedback 
       
         pidVoltOutput = kP*error + kI*integral + kD*derivative; // PID final calculation
-        ffVoltOutput = (kS* sgn(turretVelocity))+(kV*turretVelocity) + (kA * turretAcceleration); // feed forward final calculation
-        output = pidVoltOutput + ffVoltOutput; // combines PID + FF
+        //ffVoltOutput = (kS* sgn(turretVelocity))+(kV*turretVelocity) + (kA * turretAcceleration); // feed forward final calculation
+        output = pidVoltOutput; //+ ffVoltOutput; // combines PID + FF
       
         if (sgn(error) == 1) { // because I'm running voltages I gotta set the motor direction 
             turretMotor.set_reversed(true);
@@ -120,6 +120,7 @@ int turretPIDFF() {
         else {
             turretMotor.set_reversed(false); 
         }
+
         turretMotor.move_voltage(output); // Final output to voltages. Voltages are powerful enough to move the turret whenever it wants to 
         lowerLimit = atan2(            
             (positionY - (coordinateLocations[1][target] + goalRadius)),
@@ -204,7 +205,7 @@ void flywheelPIDFF() {
 
 
 
-int aimBotThread() { // auto aim thread
+void aimBotThread() { // auto aim thread
     pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
     
     positionX = chassis_controller -> getState().x.convert(okapi::inch);
@@ -263,9 +264,9 @@ int aimBotThread() { // auto aim thread
     }
 }
 void competition_initialize() {
-       pros::Task my_task2(flywheelPIDFF);
+      // pros::Task my_task2(flywheelPIDFF);
        //pros::Task my_task2(thread2);
        //pros::Task my_task3(thread3);
        //pros::Task my_task4(thread4);
-       //pros::Task my_task5(turretPID);
+       pros::Task my_task2(turretPIDFF);
 }

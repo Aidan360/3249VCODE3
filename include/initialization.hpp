@@ -22,10 +22,10 @@
 #define encoderBackTop_PORT 7
 #define encoderBackBottom_PORT 8
 // Expander Ports
-#define EXT_IntakeSensorPort 1
+#define EXT_IntakeSensorPort 4
 #define EXT_FlywheelSensorPort 2
 #define EXT_ExpansionPneumaticPort 3
-#define EXT_GyroTurretPort 4
+#define EXT_GyroTurretPort 'a'
 extern std::shared_ptr<okapi::SkidSteerModel> chassis_model;
 /*Launch Math*/
 extern okapi::ADIEncoder encoderBack;
@@ -36,5 +36,6 @@ extern okapi::MotorGroup rightMotors;
 extern std::shared_ptr<okapi::OdomChassisController> chassis_controller;
 // Threads
 extern void flywheelPIDFF();
-extern int displayThread();
-extern int turretPIDFF();
+extern void displayThread();
+extern void turretPIDFF(); 
+

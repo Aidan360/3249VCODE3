@@ -22,7 +22,9 @@ extern double flyWheelInertialIncrease; // i_wheelDelta
 
 extern double turretVelocity;
 extern double turretAcceleration;
-
+// 200:82.758620689655
+// 496.5517242 in/s max vel
+// 49.65517242 in/s^2 max accel
 
 
 /* Odometry */

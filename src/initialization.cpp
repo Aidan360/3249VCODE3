@@ -8,12 +8,13 @@ okapi::ADIEncoder encoderRight = {'E','F'};
 okapi::ADIEncoder encoderBack = {'G','H'};
 double positionX = 70;
 double positionY = 70;
+double degHead = 45;
 float dragWheelDiamater = 2.75; // drag wheel radius
 double dragWheelCirc = dragWheelDiamater*M_PI;
 double gravity = -386.08858267717; // inches per second
   /*Launch Math*/
 
-
+ 
   // Polycarb = 0.1941916032lbs
   // flywheel Weight = 0.24 lbs
   // flywheel = 0.26 lbs 
@@ -58,14 +59,17 @@ void initialize() {
     pros::ADIDigitalOut expansion_initializer (expansion_PORT);
     pros::ADIDigitalIn intakeSensor_initializer ({{expander_PORT,EXT_IntakeSensorPort}});  
     pros::ADIGyro EXT_GyroTurret_initializer ({{expander_PORT,EXT_GyroTurretPort}});
+    
     pros::ADIEncoder encoderL (encoderLeftTop_PORT,encoderLeftBottom_PORT);
     pros::ADIEncoder encoderR (encoderRightTop_PORT,encoderRightBottom_PORT);
     pros::ADIEncoder encoderB (encoderBackTop_PORT,encoderBackBottom_PORT);
+    pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
     encoderL.reset();
     encoderR.reset();
     encoderB.reset();
+    EXT_GyroTurret.reset();
     pros::delay(500);
-
+    
   std::shared_ptr<okapi::OdomChassisController> chassis_controller = okapi::ChassisControllerBuilder() 
     .withMotors (
       leftMotors,

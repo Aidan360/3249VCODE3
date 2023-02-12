@@ -540,6 +540,7 @@ void opcontrol() {
   pros::ADIDigitalOut expansion (expansion_PORT);
   pros::ADIDigitalOut indexer (indexer_PORT);
   pros::Motor flyWheel (flyWheel_PORT);
+  pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
   float curve = 0.25;
   float left;
   float right;
@@ -561,8 +562,7 @@ void opcontrol() {
     right = power - turn;
     leftFrontMotor.move(left); // Conners Move
     leftBackMotor.move(left);
-    rightFrontMotor.move(right
-    );
+    rightFrontMotor.move(right);
     rightBackMotor.move(right);
     turretMotor.move(100*(((1-curve)*turretMove)/100+(curve*pow(turretMove/100,7))));
     intake.move(controller2.get_analog(ANALOG_LEFT_Y));
@@ -574,7 +574,9 @@ void opcontrol() {
     //vFinal = sqrt(abs((0.5*discMass*pow(discSpeed,2))/(0.5*massTotal)-(0.5*springForce*flyWheelCompression)/(0.5*massTotal)));
     //flywheelRPM = ((vFinal*60)/(2*M_PI*flyWheelRadius))/18;
     //flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
- 
+     if (controller1.get_digital(DIGITAL_B)) {
+      turretMotor.move_relative(360,100);
+    }
 
 
     if (controller2.get_digital(DIGITAL_B)) {
@@ -586,6 +588,10 @@ void opcontrol() {
       indexer.set_value(false);
     }
 
+    controller1.clear();
+    pros::c::task_delay(250);  
+    controller1.print(2,0,"H: %f", (EXT_GyroTurret.get_value()/10));
+    pros::c::task_delay(50);
 /*
     if (controller2.get_digital(DIGITAL_UP)) {
       distfeet = distfeet+10;
