@@ -1,4 +1,5 @@
 #include "main.h"
+#include <iostream>
 //#include "pros/apix.h"
 //#include <cmath>
 //#include "odom.h"
@@ -135,17 +136,20 @@ int turretPIDFF() {
     }
 }
 
-int flywheelPIDFF() {
+
+
+void flywheelPIDFF() {
     pros::Motor flyWheel (flyWheel_PORT);
+
     // Factors 
         // PID factors
-        double kP = 0.15; // Proportional factor, Changes proportionally to error
-        double kI = 0.001; // Integral factor, Changes based on time of error
+        double kP = 2; // Proportional factor, Changes proportionally to error
+        double kI = 1; // Integral factor, Changes based on time of error
         double kD = 0.2; // Derivate factor, Changes based on the rate of change in error
         // FF Factors 
         double kS = 0.9; // Minimum voltage to get the motor moving
         double kV = 0.85; // voltage required to sustain velocity
-        double kA = 1; // voltage required accelerate
+        double kA = 1.5; // voltage required accelerate
     // Values 
     
         double integral = 0;
@@ -154,29 +158,47 @@ int flywheelPIDFF() {
         double error = flyWheel.get_actual_velocity()*18 - flyWheelVelocity(zCoordinates[1],totalDistance);
         double lastError;
         double output;
-        double goalRadius = 15.73/2; // inches for limits
+
         // The upper and limit changes based off of how far the robot is away from the goal
         double upperLimit = flyWheelVelocity(zCoordinates[2],totalDistance);     
         double lowerLimit = flyWheelVelocity(zCoordinates[0],totalDistance);
         double pidVoltOutput; // Output = kP*error + kI*Integral[error] + kD*Derivative[error]
         double ffVoltOutput; // output = (kS * sgn(V)) + (kV * V) + (kA * A) + kG
+    //debug 
+    std::shared_ptr<graphy::AsyncGrapher> grapher(new graphy::AsyncGrapher("Flywheel Velocity vs. Time"));
+
+    // Add data types
+     grapher->addDataType("Desired Vel", COLOR_ORANGE);
+     grapher->addDataType("Actual Vel", COLOR_AQUAMARINE);
+
+    // Start grapher task
+     grapher->startTask();
+
     while (true) {
-        error = flyWheel.get_actual_velocity()*18 - flyWheelVelocityE(zCoordinates[1],2);
+        error = flyWheel.get_actual_velocity()*18 - flyWheelVelocityE(zCoordinates[1],totalDistance);
         integral = integral+error; // integral scales overtime
         derivative = error-lastError; // derivative changes based on feedback 
       
         pidVoltOutput = kP*error + kI*integral + kD*derivative; // PID final calculation
-        ffVoltOutput = (kS* sgn(turretVelocity))+(kV*turretVelocity) + (kA * turretAcceleration); // feed forward final calculation
+        
+        ffVoltOutput = (kS* sgn(flyWheelVelocityE(zCoordinates[1],totalDistance)))+(kV*flyWheelVelocityE(zCoordinates[1],totalDistance)) + (kA * (flyWheelVelocityE(zCoordinates[1],totalDistance)/10)); // feed forward final calculation
+        
         output = pidVoltOutput + ffVoltOutput; // combines PID + FF
+        flyWheel.set_reversed(true);
         flyWheel.move_voltage(output); // Final output to voltages. Voltages are powerful enough to move the turret whenever it wants to 
+        
+        
         lowerLimit = flyWheelVelocityE(zCoordinates[0],totalDistance);
         upperLimit = flyWheelVelocityE(zCoordinates[2],totalDistance);
-
+      
         if (upperLimit > flyWheel.get_actual_velocity()*18 > lowerLimit) {
             lockOn = true;
         }  
+        grapher->update("Desired Vel", flyWheelVelocityE(zCoordinates[1],totalDistance));
+        grapher->update("Actual Vel", flyWheel.get_actual_velocity());
         pros::c::task_delay(10);
         lastError = error;
+        
     }
 }
 
@@ -186,9 +208,9 @@ int aimBotThread() { // auto aim thread
     pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
     
     positionX = chassis_controller -> getState().x.convert(okapi::inch);
-    positionY = chassis_controller -> getState().y.convert(okapi::inch);
-    
+    positionY = chassis_controller -> getState().y.convert(okapi::inch);    
     degHead = chassis_controller -> getState().theta.convert(okapi::degree);
+
     //float flyWheelContactAngle = 70; // needs calibration
     double totalDistance = 0;
     double totalTurretRotation = EXT_GyroTurret.get_value(); // to make sure that we don't go overboard and twist/rip wires
@@ -239,4 +261,11 @@ int aimBotThread() { // auto aim thread
         }
             pros::c::task_delay(10);
     }
+}
+void competition_initialize() {
+       pros::Task my_task2(flywheelPIDFF);
+       //pros::Task my_task2(thread2);
+       //pros::Task my_task3(thread3);
+       //pros::Task my_task4(thread4);
+       //pros::Task my_task5(turretPID);
 }

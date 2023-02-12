@@ -242,16 +242,16 @@ turretDisc = false;
 }
 */
 
-
+/*
 int thread1() { // Position thread If it ever breaks we dead
 
 
-/*
+
 New Psuedocode
 Get raw distance travelled.
 send to MOVE pid
 move PID work?
-*/
+
 
 
   double diffrence = 0;
@@ -298,13 +298,13 @@ move PID work?
     //rotVelocity = (2*M_PI*offsets[1]/360*(vDiffrence)*dragDegrees)*(180/M_PI);
     //degHead = (2*offsets[0]*diffrence*dragWheelCirc*180)/pow(360,2);
     //vBackWheelDiffrence = encoderVVB - offsets[0]*diffrence/offsets[2];
-/*
+
     if ((degHead >= 360)) {
     degHead = degHead-360;
     }
     else if ((degHead <= 0)) {
       degHead = degHead+360;
-    } */
+    } 
  //     dist = ((encoderVR+encoderVL)*sin(radians(degHead)/2))/degHead;
  
 //    if((180 < degHead)) {
@@ -332,7 +332,7 @@ move PID work?
 
   // I NEED VELOCITY FOR AIMBOT
   }
-}
+} */
 int thread2() { // Controller screen thread
 thread2On = true;
 while(true) {
@@ -437,13 +437,7 @@ void disabled() {}
  * starts.
  */
 
-void competition_initialize() {
-       pros::Task my_task1(flywheelPIDFF);
-       //pros::Task my_task2(thread2);
-       //pros::Task my_task3(thread3);
-       //pros::Task my_task4(thread4);
-       //pros::Task my_task5(turretPID);
-}
+
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -456,6 +450,8 @@ void competition_initialize() {
  * will be brakeped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+
+ 
 void autonomous() {
   pros::ADIDigitalOut indexer (indexer_PORT);
   pros::Motor flyWheel (flyWheel_PORT);
@@ -466,7 +462,9 @@ void autonomous() {
   pros::Motor rightBackMotor (rightBackMotor_PORT);
   pros::ADIDigitalOut expansion (expansion_PORT);
   pros::Motor turretMotor (turretMotor_PORT);
-  pros::Task my_task1(flywheelPIDFF);
+  
+  flywheelPIDFF();
+  
   //flyWheel.move_voltage(950);
   /*    
 
@@ -597,7 +595,7 @@ void opcontrol() {
       distfeet = distfeet-10;
       pros::delay(50);
     } */
-    flyWheel.move_velocity(distfeet);
+
 
 
 /*

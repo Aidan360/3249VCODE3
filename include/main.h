@@ -37,6 +37,7 @@
 #include "api.h"
 #include "initialization.hpp"
 #include "GlobalVarAndFormulas.hpp"
+#include "Graphy/Grapher.hpp"
 /**
  * You should add more #includes here
  */

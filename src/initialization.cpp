@@ -1,16 +1,45 @@
 #include "main.h"
 #include "okapi/api.hpp"
-#include "initialization.hpp"
+
 okapi::MotorGroup leftMotors = {1,2};
 okapi::MotorGroup rightMotors = {3,4};
 okapi::ADIEncoder encoderLeft = {'C','D'};
 okapi::ADIEncoder encoderRight = {'E','F'};
 okapi::ADIEncoder encoderBack = {'G','H'};
-double positionX = 0;
-double positionY = 0;
+double positionX = 70;
+double positionY = 70;
 float dragWheelDiamater = 2.75; // drag wheel radius
 double dragWheelCirc = dragWheelDiamater*M_PI;
 double gravity = -386.08858267717; // inches per second
+  /*Launch Math*/
+
+
+  // Polycarb = 0.1941916032lbs
+  // flywheel Weight = 0.24 lbs
+  // flywheel = 0.26 lbs 
+  
+  double flyWheelMass = 0.49; // pounds (m)
+  double flyWheelRadius = 2; // inches (r)
+  double flyWheelCrossArea = M_PI*2*2; // inches (A)
+  double flyWheelCompression = 0.15; // inches (l)
+  double flyWheelAngle = 35; // angle in degrees (a)
+  double flyWheelGearRatio = 18; // multipler for gearing
+  // Compression Force (F=E*A*l)/r
+  double flyWheelCompressionForce = (flyWheelCrossArea*flyWheelCompression)/(flyWheelRadius*2); // (f)
+  // Inertia Calc, m*r^2
+  double discInertia = 0.121254*pow(5.5/2,2); // i_disc
+  double discMass = 0.121254;
+  double massTotal = flyWheelMass+discMass;
+  double flyWheelInertia = (flyWheelMass*pow(flyWheelRadius,2))/2; // i_wheel
+  // Inertial increase from Compression i_delta = (F*r^2)/(3*E)
+  double flyWheelInertialIncrease = (flyWheelCompressionForce*pow((flyWheelRadius*2),2))/(3); // i_wheelDelta
+
+  float turretOffsetZ = 11.5; // turret offset height from ground so it can properly aim
+  float flywheelOffset = 5; // needs to be measured
+  float middleLineX1 = 0;
+  float middleLineX2 = 140.02;
+  float middleLineY1 = 0;
+  float middleLineXY = 140.02;
 void initialize() {
 
 //double M_PI = 3.14159265358979323846264338327950288;
@@ -72,35 +101,7 @@ void initialize() {
 
   //   chassis_controller -> setState(0,0,0);
 
-  /*Launch Math*/
 
-
-  // Polycarb = 0.1941916032lbs
-  // flywheel Weight = 0.24 lbs
-  // flywheel = 0.26 lbs 
-  /*
-  flyWheelMass = 0.49; // pounds (m)
-  flyWheelRadius = 2; // inches (r)
-  flyWheelCrossArea = M_PI*2*2; // inches (A)
-  flyWheelCompression = 0.15; // inches (l)
-  flyWheelAngle = 35; // angle in degrees (a)
-  flyWheelGearRatio = 18; // multipler for gearing
-  // Compression Force (F=E*A*l)/r
-  flyWheelCompressionForce = (flyWheelCrossArea*flyWheelCompression)/(flyWheelRadius*2); // (f)
-  // Inertia Calc, m*r^2
-  discInertia = 0.121254*pow(5.5/2,2); // i_disc
-  discMass = 0.121254;
-  massTotal = flyWheelMass+discMass;
-  flyWheelInertia = (flyWheelMass*pow(flyWheelRadius,2))/2; // i_wheel
-  // Inertial increase from Compression i_delta = (F*r^2)/(3*E)
-  flyWheelInertialIncrease = (flyWheelCompressionForce*pow((flyWheelRadius*2),2))/(3); // i_wheelDelta
-  turretThreashold = 3;
-  turretOffsetZ = 11.5; // turret offset height from ground so it can properly aim
-  flywheelOffset = 5; // needs to be measured
-  middleLineX1 = 0;
-  middleLineX2 = 140.02;
-  middleLineY1 = 0;
-  middleLineXY = 140.02; */
 
 }
 

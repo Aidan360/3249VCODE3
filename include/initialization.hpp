@@ -35,6 +35,6 @@ extern okapi::MotorGroup leftMotors;
 extern okapi::MotorGroup rightMotors;
 extern std::shared_ptr<okapi::OdomChassisController> chassis_controller;
 // Threads
-extern int flywheelPIDFF();
+extern void flywheelPIDFF();
 extern int displayThread();
 extern int turretPIDFF();
