@@ -1,5 +1,7 @@
 #include "main.h"
 #include "okapi/api.hpp"
+#include "okapi/api/units/QAngle.hpp"
+#include "okapi/api/units/QLength.hpp"
 
 okapi::MotorGroup leftMotors = {1,2};
 okapi::MotorGroup rightMotors = {3,4};
@@ -80,8 +82,8 @@ void initialize() {
     .withDimensions(
       {okapi::AbstractMotor::gearset::green, 
       (1./1.)}, 
-      {{4.125, 
-      15.75}, 
+      {{4.125*okapi::inch, 
+      15.75*okapi::inch}, 
       okapi::imev5GreenTPR})
     .withSensors(        
         encoderLeft, // left encoder in ADI ports A & B
@@ -91,13 +93,18 @@ void initialize() {
 		// Tracking wheel diameter | wheel track (tracking) | middle encoder distance | center tracking wheel diameter
     .withOdometry(
       {
-        {2.75,
-        5.5,
-        4,
-        2.75}, 
+        {2.75*okapi::inch,
+        5.5*okapi::inch,
+        4*okapi::inch,
+        2.75*okapi::inch}, 
       okapi::quadEncoderTPR})
   	.buildOdometry();
     std::shared_ptr<okapi::SkidSteerModel> chassis_model = std::dynamic_pointer_cast<okapi::SkidSteerModel>(chassis_controller -> getModel());
+    
+    chassis_controller -> setState({positionX*okapi::inch,positionY*okapi::inch,degHead*okapi::degree});
+
+    
+
 	  //chassis_max_vel = chassis_model -> getMaxVelocity();
     // EXT_GyroTurret.calibrate;
     pros::lcd::initialize();

@@ -207,10 +207,12 @@ void flywheelPIDFF() {
 
 void aimBotThread() { // auto aim thread
     pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
-    
+    std::shared_ptr<okapi::OdomChassisController> chassis_controller;
     positionX = chassis_controller -> getState().x.convert(okapi::inch);
     positionY = chassis_controller -> getState().y.convert(okapi::inch);    
     degHead = chassis_controller -> getState().theta.convert(okapi::degree);
+
+
 
     //float flyWheelContactAngle = 70; // needs calibration
     double totalDistance = 0;
@@ -220,8 +222,8 @@ void aimBotThread() { // auto aim thread
     double relativeVelocity;
     double ejectVelocity;
     double flywheelVelocity;
-    double velocityXsec = velocityX*1000;
-    double velocityYsec = velocityY*1000;
+    //double velocityXsec = velocityX*1000;
+    //double velocityYsec = velocityY*1000;
     double v_final;
     double springForce = (11501.492602*(M_PI*2*flyWheelRadius))/(flyWheelRadius*2);
     
@@ -234,39 +236,19 @@ void aimBotThread() { // auto aim thread
     pros::Motor flyWheel (flyWheel_PORT);
     //task myTask = task(turretPID);
     while(true) {
-        //totalTurretRotation += degHead - lastdegHead;
-        //velocityXsec = velocityX*100; // inches per ms to inches per second
-        //velocityYsec = velocityY*100;
-        //relativeVelocity = sqrt(pow(velocityXsec,2)+pow(velocityYsec,2)+2*velocityX*velocityYsec*cos(90-findAngle(target)));
-        //totalDistance = sqrt(pow(findDistance(positionX,positionY,coordinateLocations[0][target],coordinateLocations[1][target]),2)
-        totalDistance = atan2(positionY,positionX);
-        //+pow(tan(radians(flyWheelAngle))*findDistance(positionX,positionY,coordinateLocations[0][target],coordinateLocations[1][target]),2));
-        if((aimBot=true)) {
-            // Turret movement very simple :D
-            // it isnt D:
-        
-            // decides if the turret is within acceptable limits
-            // sqrt(g*d^2/(2*cos(a)*)(hg-hr-d*tan(a))
-            ejectVelocity = sqrt((gravity*pow(totalDistance,2)/((2*cos(radians(flyWheelAngle)))*(zCoordinates[1]-turretOffsetZ-totalDistance*tan(radians(flyWheelAngle)))))); // inches per second
-            // RPM = (v*60)/(2*pi*r_wheel*sqrt(i_object/i_wheel+i_deltaWheel))
-            v_final = sqrt(abs((0.5*discMass*pow(ejectVelocity,2))/(0.5*massTotal)-(0.5*springForce*flyWheelCompression)/(0.5*massTotal)));
-            flywheelVelocity = (ejectVelocity*60)/(2*M_PI*flyWheelRadius);
-            //flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
-        
-            flyWheel.move_velocity(flywheelVelocity);
-        // flyWheel2.move_velocity(flywheelVelocity,rpm);
-        }
-        else {
-        //  EXT_GyroTurret.get_value() = totalTurretRotation;
-            //turretError = degHead;
-        }
-            pros::c::task_delay(10);
+        positionX = chassis_controller -> getState().x.convert(okapi::inch);
+        positionY = chassis_controller -> getState().y.convert(okapi::inch);    
+        degHead = chassis_controller -> getState().theta.convert(okapi::degree);
+        pros::c::task_delay(10);
     }
 }
+
 void competition_initialize() {
-      // pros::Task my_task2(flywheelPIDFF);
-       //pros::Task my_task2(thread2);
+       pros::Task my_task1(aimBotThread);
+       pros::Task my_task2(displayThread);
        //pros::Task my_task3(thread3);
        //pros::Task my_task4(thread4);
-       pros::Task my_task2(turretPIDFF);
+//        pros::Task my_task2(turretPIDFF);
+    
+
 }

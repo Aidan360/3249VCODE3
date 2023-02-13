@@ -333,7 +333,7 @@ move PID work?
   // I NEED VELOCITY FOR AIMBOT
   }
 } */
-int thread2() { // Controller screen thread
+void displayThread() { // Controller screen thread
 thread2On = true;
 while(true) {
   pros::Controller controller1 (pros::E_CONTROLLER_MASTER);
@@ -351,14 +351,14 @@ while(true) {
   pros::c::task_delay(250);                                                                                                                                                                                                                                                                                                                                                                                                                              
   controller2.clear();
   pros::c::task_delay(250);
-  controller1.print(0,0,"X: %i",positionX);
+  controller1.print(0,0,"X: %f",positionX);
   pros::c::task_delay(50);
-  controller1.print(1,0,"Y: %i",positionY);
+  controller1.print(1,0,"Y: %f",positionY);
     pros::c::task_delay(50);
-  controller1.print(2,0,"H: %i", degHead);
+  controller1.print(2,0,"H: %f", degHead);
     pros::c::task_delay(50);
-  controller2.print(0,0,"D: %i", distfeet);
-    pros::c::task_delay(50);
+ // controller2.print(0,0,"D: %f", distfeet);
+   // pros::c::task_delay(50);
     //pros::c::task_delay(50);
   //controller2.print(1,0,"TurretDeg: ", EXT_GyroTurret.get_value());
   //pros::c::task_delay(250);
@@ -588,10 +588,10 @@ void opcontrol() {
       indexer.set_value(false);
     }
 
-    controller1.clear();
-    pros::c::task_delay(250);  
-    controller1.print(2,0,"H: %f", (EXT_GyroTurret.get_value()/10));
-    pros::c::task_delay(50);
+ //   controller1.clear();
+ //   pros::c::task_delay(250);  
+ //   controller1.print(2,0,"H: %f", (EXT_GyroTurret.get_value()/10));
+ //   pros::c::task_delay(50);
 /*
     if (controller2.get_digital(DIGITAL_UP)) {
       distfeet = distfeet+10;
