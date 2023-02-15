@@ -1,10 +1,15 @@
 #include "main.h"
 #include "okapi/api.hpp"
 #include "okapi/api/units/QAngle.hpp"
+#include "okapi/api/units/QAngularSpeed.hpp"
 #include "okapi/api/units/QLength.hpp"
+#include "okapi/api/units/QTime.hpp"
+#include "okapi/api/util/mathUtil.hpp"
+#include "okapi/impl/device/rotarysensor/integratedEncoder.hpp"
 
 okapi::MotorGroup leftMotors = {1,2};
 okapi::MotorGroup rightMotors = {3,4};
+okapi::Motor flyWheel_Motor = 9;
 okapi::ADIEncoder encoderLeft = {'C','D'};
 okapi::ADIEncoder encoderRight = {'E','F'};
 okapi::ADIEncoder encoderBack = {'G','H'};
@@ -15,7 +20,10 @@ float dragWheelDiamater = 2.75; // drag wheel radius
 double dragWheelCirc = dragWheelDiamater*M_PI;
 double gravity = -386.08858267717; // inches per second
   /*Launch Math*/
-
+  float coordinateLocations[2][8] = {
+  {0,140.2,110.98,139,29.43,1,122.63,17.78},
+  {72.20,72.20,139,110.98,1,29.43,17.78,122.63}
+  };
  
   // Polycarb = 0.1941916032lbs
   // flywheel Weight = 0.24 lbs
@@ -103,8 +111,23 @@ void initialize() {
     std::shared_ptr<okapi::SkidSteerModel> chassis_model = std::dynamic_pointer_cast<okapi::SkidSteerModel>(chassis_controller -> getModel());
     
     chassis_controller -> setState({positionX*okapi::inch,positionY*okapi::inch,degHead*okapi::degree});
-    std::shared_ptr<okapi::AsyncVelocityController<double, double>> flywheel_controller = okapi::AsyncVelControllerBuilder();
-
+    
+    
+    std::shared_ptr<okapi::AsyncVelocityController<double, double> > flywheel_controller = okapi::AsyncVelControllerBuilder()
+      .withMotor (
+        flyWheel_Motor
+      )
+      .withSensor (
+        okapi::IntegratedEncoder(flyWheel_Motor)
+      )
+      .withGearset(
+        okapi::AbstractMotor::gearset::green
+      )
+      .withLogger(
+      okapi::Logger::getDefaultLogger()
+      )
+      .notParentedToCurrentTask()
+      .build();
     
 
 	  //chassis_max_vel = chassis_model -> getMaxVelocity();

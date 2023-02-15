@@ -33,6 +33,7 @@ extern okapi::ADIEncoder encoderLeft;
 extern okapi::ADIEncoder encoderRight;
 extern okapi::MotorGroup leftMotors;
 extern okapi::MotorGroup rightMotors;
+extern okapi::Motor flyWheel_Motor;
 extern std::shared_ptr<okapi::OdomChassisController> chassis_controller;
 extern std::shared_ptr<okapi::AsyncVelocityController<double, double>> flywheel_controller;
 // Threads
@@ -42,4 +43,4 @@ extern void turretPIDFF();
 
 
 extern float varChange; 
-extern double M_PI = 3.14;
+//extern double M_PI = 3.14;

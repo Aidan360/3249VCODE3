@@ -29,11 +29,11 @@ double flyWheelVelocity(float target,float totalDistance, float angle) {
     double n = (a*60)/(2*M_PI*flyWheelRadius);
     return(n);
 }
-double flyWheelVelocityE(float target,float totalDistance, float angle) {
+double flyWheelVelocityE(float target,float totalDistance, float occislation, float angle) {
     double a = sqrt(
             (gravity*pow(totalDistance,2)
             /((2*cos(radians(angle)))*(target-turretOffsetZ-totalDistance*tan(radians(angle))))));
     double v_final = sqrt((0.5 * discMass * pow(a,2)) / (0.5 * (flyWheelMass+discMass)));
-    double n = (v_final*60)/(2*M_PI*flyWheelRadius);
+    double n = (v_final*60)/(2*M_PI*(flyWheelRadius+occislation));
     return(n);
 }
