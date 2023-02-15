@@ -78,11 +78,25 @@ int turretPID() {
 void turretPIDFF() {
     pros::Motor turretMotor (turretMotor_PORT);
     pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
-    
+
+
+    /* log  
+    1: kP = 0.1 F
+    2: kP = 0.2 F
+    3: kP = 0.3 F
+    4: kP = 1 F
+    5: kP = 2 F
+    6: kP = 10 F
+    7: kP = 100 F
+    8: kP = 1000 
+    */
+
+
+
     // Factors 
         // PID factors
-        double kP = 3; // Proportional factor, Changes proportionally to error
-        double kI = 0.01; // Integral factor, Changes based on time of error
+        double kP = 1000; // Proportional factor, Changes proportionally to error
+        double kI = 0.00; // Integral factor, Changes based on time of error
         double kD = 0; // Derivate factor, Changes based on the rate of change in error
         // FF Factors 
      //   double kS = 1.6; // Minimum voltage to get the motor moving
@@ -144,8 +158,8 @@ void flywheelPIDFF() {
 
     // Factors 
         // PID factors
-        double kP = 0.1; // Proportional factor, Changes proportionally to error
-        double kI = 0.01; // Integral factor, Changes based on time of error
+        double kP = 0.5; // Proportional factor, Changes proportionally to error
+        double kI = 0; // Integral factor, Changes based on time of error
         double kD = 0; // Derivate factor, Changes based on the rate of change in error
         // FF Factors 
         double kS = 0; // Minimum voltage to get the motor moving
@@ -203,29 +217,26 @@ void flywheelPIDFF() {
     }
 }
 
-
-
-void aimBotThread() { // auto aim thread
     pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
     std::shared_ptr<okapi::OdomChassisController> chassis_controller;
-    positionX = chassis_controller -> getState().x.convert(okapi::inch);
-    positionY = chassis_controller -> getState().y.convert(okapi::inch);    
-    degHead = chassis_controller -> getState().theta.convert(okapi::degree);
+    std::shared_ptr<okapi::AsyncVelocityController<double, double> > flywheel_controller;
 
-
-
+void aimBotThread() { // auto aim thread
+   // positionX = chassis_controller -> getState().x.convert(okapi::inch);
+   // positionY = chassis_controller -> getState().y.convert(okapi::inch);    
+   // degHead = chassis_controller -> getState().theta.convert(okapi::degree);
     //float flyWheelContactAngle = 70; // needs calibration
-    double totalDistance = 0;
-    double totalTurretRotation = EXT_GyroTurret.get_value(); // to make sure that we don't go overboard and twist/rip wires
+ double totalDistance = findDistance(coordinateLocations[0][target],positionX,coordinateLocations[1][target],positionY);
+  //  double totalTurretRotation = EXT_GyroTurret.get_value(); // to make sure that we don't go overboard and twist/rip wires
     //float maxTotalTurretRotation = 720;
     //float pneumaticSpeed =  8;// in inches per second idk how this is that fast
-    double relativeVelocity;
-    double ejectVelocity;
-    double flywheelVelocityCalc;
+    //double relativeVelocity;
+    //double ejectVelocity;
+    //double flywheelVelocityCalc;
     //double velocityXsec = velocityX*1000;
     //double velocityYsec = velocityY*1000;
-    double v_final;
-    double springForce = (11501.492602*(M_PI*2*flyWheelRadius))/(flyWheelRadius*2);
+    //double v_final;
+    //double springForce = (11501.492602*(M_PI*2*flyWheelRadius))/(flyWheelRadius*2);
     
     if ((redTeam = true)) {
         target = 7;
@@ -236,20 +247,22 @@ void aimBotThread() { // auto aim thread
     pros::Motor flyWheel (flyWheel_PORT);
     //task myTask = task(turretPID);
     while(true) {
-        positionX = chassis_controller -> getState().x.convert(okapi::inch);
-        positionY = chassis_controller -> getState().y.convert(okapi::inch);    
-        degHead = chassis_controller -> getState().theta.convert(okapi::degree);
+        
+       // positionX = chassis_controller -> getState().x.convert(okapi::inch);
+       // positionY = chassis_controller -> getState().y.convert(okapi::inch);    
+      // degHead = chassis_controller -> getState().theta.convert(okapi::degree);
+       totalDistance = findDistance(coordinateLocations[0][target],positionX,coordinateLocations[1][target],positionY);
         flywheel_controller -> setTarget(flyWheelVelocityCalc(zCoordinates[1],totalDistance));
         pros::c::task_delay(10);
     }
 }
 
 void competition_initialize() {
-     // pros::Task my_task1(aimBotThread);
+   // pros::Task my_task1(aimBotThread);
     pros::Task my_task5(displayThread);
       // pros::Task my_task3(flywheelPIDFF);
        //pros::Task my_task4(thread4);
-     pros::Task my_task2(turretPIDFF);
+    pros::Task my_task2(turretPIDFF);
     
 
 }

@@ -34,6 +34,9 @@
  */
 #define PROS_USE_LITERALS
 
+#define _USE_MATH_DEFINES // for C++
+#include <cmath>
+
 #include "api.h"
 #include "okapi/api.hpp"
 #include "initialization.hpp"

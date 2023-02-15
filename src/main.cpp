@@ -351,7 +351,7 @@ while(true) {
   pros::c::task_delay(250);                                                                                                                                                                                                                                                                                                                                                                                                                              
   controller2.clear();
   pros::c::task_delay(250);
-  controller1.print(0,0,"X: %f",positionX);
+  controller1.print(0,0,"X: %f",EXT_GyroTurret.get_value());
   pros::c::task_delay(50);
   controller1.print(1,0,"Y: %f",positionY);
     pros::c::task_delay(50);
@@ -463,7 +463,7 @@ void autonomous() {
   pros::ADIDigitalOut expansion (expansion_PORT);
   pros::Motor turretMotor (turretMotor_PORT);
   
-  flywheelPIDFF();
+  //flywheelPIDFF();
   
   //flyWheel.move_voltage(950);
   /*    
