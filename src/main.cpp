@@ -351,7 +351,7 @@ while(true) {
   pros::c::task_delay(250);                                                                                                                                                                                                                                                                                                                                                                                                                              
   controller2.clear();
   pros::c::task_delay(250);
-  controller1.print(0,0,"V: %f",varChange);
+  controller1.print(0,0,"X: %f",positionX);
   pros::c::task_delay(50);
   controller1.print(1,0,"Y: %f",positionY);
     pros::c::task_delay(50);
@@ -596,16 +596,16 @@ void opcontrol() {
  //   pros::c::task_delay(250);  
  //   controller1.print(2,0,"H: %f", (EXT_GyroTurret.get_value()/10));
  //  pros::c::task_delay(50);
-    controller1.clear();
-    pros::c::task_delay(50); 
-    controller1.print(0,0,"V: %f",varChange);
-    pros::c::task_delay(50);
+    //controller1.clear();
+    //pros::c::task_delay(50); 
+    //controller1.print(0,0,"V: %f",varChange);
+    //pros::c::task_delay(50);
     if (controller1.get_digital(DIGITAL_UP)) {
-      varChange = varChange+1;
+      varChange = varChange+10;
       //pros::delay(50);
     }
     if (controller1.get_digital(DIGITAL_DOWN)) {
-      varChange = varChange-1;
+      varChange = varChange-10;
      // pros::delay(50);
     } 
 

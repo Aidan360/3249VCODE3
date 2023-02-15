@@ -21,7 +21,7 @@ int sgn(int n) {
     if (n < 0) return -1;
     return 0;
 }
-double flyWheelVelocity(float target,float totalDistance, float angle) {
+double flyWheelVelocityCalc(float target,float totalDistance, float occislation, float angle) {
     double a = sqrt(
             (gravity*pow(totalDistance,2)
             /((2*cos(radians(angle)))

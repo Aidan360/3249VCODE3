@@ -81,13 +81,13 @@ void turretPIDFF() {
     
     // Factors 
         // PID factors
-        double kP = 0.5; // Proportional factor, Changes proportionally to error
-        double kI = 0.000; // Integral factor, Changes based on time of error
+        double kP = 3; // Proportional factor, Changes proportionally to error
+        double kI = 0.01; // Integral factor, Changes based on time of error
         double kD = 0; // Derivate factor, Changes based on the rate of change in error
         // FF Factors 
-        double kS = 1.6; // Minimum voltage to get the motor moving
-        double kV = 1.7; // voltage required to sustain velocity
-        double kA = 2.3; // voltage required accelerate
+     //   double kS = 1.6; // Minimum voltage to get the motor moving
+     //   double kV = 1.7; // voltage required to sustain velocity
+     //   double kA = 2.3; // voltage required accelerate
     // Values 
         double integral = 0;
         double derivative = 0;
@@ -156,13 +156,13 @@ void flywheelPIDFF() {
         double integral = 0;
         double derivative = 0;
         double totalDistance = findDistance(coordinateLocations[0][target],positionX,coordinateLocations[1][target],positionY);
-        double error = flyWheel.get_actual_velocity()*18 - flyWheelVelocity(zCoordinates[1],totalDistance);
+        double error = flyWheel.get_actual_velocity()*18 - flyWheelVelocityCalc(zCoordinates[1],totalDistance);
         double lastError;
         double output;
 
         // The upper and limit changes based off of how far the robot is away from the goal
-        double upperLimit = flyWheelVelocity(zCoordinates[2],totalDistance);     
-        double lowerLimit = flyWheelVelocity(zCoordinates[0],totalDistance);
+        double upperLimit = flyWheelVelocityCalc(zCoordinates[2],totalDistance);     
+        double lowerLimit = flyWheelVelocityCalc(zCoordinates[0],totalDistance);
         double pidVoltOutput; // Output = kP*error + kI*Integral[error] + kD*Derivative[error]
         double ffVoltOutput; // output = (kS * sgn(V)) + (kV * V) + (kA * A) + kG
     //debug 
@@ -176,26 +176,26 @@ void flywheelPIDFF() {
      grapher->startTask();
 
     while (true) {
-        error = flyWheel.get_actual_velocity() - flyWheelVelocity(zCoordinates[1],totalDistance);
+        error = flyWheel.get_actual_velocity() - flyWheelVelocityCalc(zCoordinates[1],totalDistance);
         integral = integral+error; // integral scales overtime
         derivative = error-lastError; // derivative changes based on feedback 
       
         pidVoltOutput = kP*error + kI*integral + kD*derivative; // PID final calculation
         
-        ffVoltOutput = (kS* sgn(flyWheelVelocity(zCoordinates[1],totalDistance)))+(kV*flyWheelVelocity(zCoordinates[1],totalDistance)) + (kA * (flyWheelVelocityE(zCoordinates[1],totalDistance)/10)); // feed forward final calculation
+        ffVoltOutput = (kS* sgn(flyWheelVelocityCalc(zCoordinates[1],totalDistance)))+(kV*flyWheelVelocityCalc(zCoordinates[1],totalDistance)) + (kA * (flyWheelVelocityCalc(zCoordinates[1],totalDistance)/10)); // feed forward final calculation
         
         output = pidVoltOutput + ffVoltOutput; // combines PID + FF
         flyWheel.set_reversed(true);
         flyWheel.move_voltage(output); // Final output to voltages. Voltages are powerful enough to move the turret whenever it wants to 
         
         
-        lowerLimit = flyWheelVelocity(zCoordinates[0],totalDistance);
-        upperLimit = flyWheelVelocity(zCoordinates[2],totalDistance);
+        lowerLimit = flyWheelVelocityCalc(zCoordinates[0],totalDistance);
+        upperLimit = flyWheelVelocityCalc(zCoordinates[2],totalDistance);
       
         if (upperLimit > flyWheel.get_actual_velocity()*18 > lowerLimit) {
             lockOn = true;
         }  
-        grapher->update("Desired Vel", flyWheelVelocity(zCoordinates[1],totalDistance));
+        grapher->update("Desired Vel", flyWheelVelocityCalc(zCoordinates[1],totalDistance));
         grapher->update("Actual Vel", flyWheel.get_actual_velocity());
         pros::c::task_delay(10);
         lastError = error;
@@ -221,7 +221,7 @@ void aimBotThread() { // auto aim thread
     //float pneumaticSpeed =  8;// in inches per second idk how this is that fast
     double relativeVelocity;
     double ejectVelocity;
-    double flywheelVelocity;
+    double flywheelVelocityCalc;
     //double velocityXsec = velocityX*1000;
     //double velocityYsec = velocityY*1000;
     double v_final;
@@ -239,17 +239,17 @@ void aimBotThread() { // auto aim thread
         positionX = chassis_controller -> getState().x.convert(okapi::inch);
         positionY = chassis_controller -> getState().y.convert(okapi::inch);    
         degHead = chassis_controller -> getState().theta.convert(okapi::degree);
-        flywheel_controller -> setTarget(flyWheelVelocity(zCoordinates[1],totalDistance));
+        flywheel_controller -> setTarget(flyWheelVelocityCalc(zCoordinates[1],totalDistance));
         pros::c::task_delay(10);
     }
 }
 
 void competition_initialize() {
-     //  pros::Task my_task1(aimBotThread);
-       //pros::Task my_task2(displayThread);
-       pros::Task my_task3(flywheelPIDFF);
+     // pros::Task my_task1(aimBotThread);
+    pros::Task my_task5(displayThread);
+      // pros::Task my_task3(flywheelPIDFF);
        //pros::Task my_task4(thread4);
-//        pros::Task my_task2(turretPIDFF);
+     pros::Task my_task2(turretPIDFF);
     
 
 }

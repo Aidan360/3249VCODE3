@@ -77,5 +77,5 @@ extern double findDistance(double X1, double Y1, double X2, double Y2, double di
 extern double radians(double deg, double x = 0);
 extern double degrees(double rad, double x = 0);
 extern int sgn(int n);
-extern double flyWheelVelocity(float target,float totalDistance, float oscilation = 0,float angle = flyWheelAngle);
-extern double flyWheelVelocityE(float target,float totalDistance, float angle = flyWheelAngle);
+extern double flyWheelVelocityCalc(float target,float totalDistance, float oscilation = 0,float angle = flyWheelAngle);
+extern double flyWheelVelocityE(float target,float totalDistance,float occislation = 0, float angle = flyWheelAngle);

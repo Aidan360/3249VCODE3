@@ -20,10 +20,6 @@ float dragWheelDiamater = 2.75; // drag wheel radius
 double dragWheelCirc = dragWheelDiamater*M_PI;
 double gravity = -386.08858267717; // inches per second
   /*Launch Math*/
-  float coordinateLocations[2][8] = {
-  {0,140.2,110.98,139,29.43,1,122.63,17.78},
-  {72.20,72.20,139,110.98,1,29.43,17.78,122.63}
-  };
  
   // Polycarb = 0.1941916032lbs
   // flywheel Weight = 0.24 lbs
