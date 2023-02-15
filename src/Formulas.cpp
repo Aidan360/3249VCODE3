@@ -24,7 +24,8 @@ int sgn(int n) {
 double flyWheelVelocity(float target,float totalDistance, float angle) {
     double a = sqrt(
             (gravity*pow(totalDistance,2)
-            /((2*cos(radians(angle)))*(target-turretOffsetZ-totalDistance*tan(radians(angle))))));
+            /((2*cos(radians(angle)))
+            *(target-turretOffsetZ-totalDistance*tan(radians(angle))))));
     double n = (a*60)/(2*M_PI*flyWheelRadius);
     return(n);
 }

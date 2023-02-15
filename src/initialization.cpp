@@ -98,10 +98,12 @@ void initialize() {
         4*okapi::inch,
         2.75*okapi::inch}, 
       okapi::quadEncoderTPR})
+    .notParentedToCurrentTask()
   	.buildOdometry();
     std::shared_ptr<okapi::SkidSteerModel> chassis_model = std::dynamic_pointer_cast<okapi::SkidSteerModel>(chassis_controller -> getModel());
     
     chassis_controller -> setState({positionX*okapi::inch,positionY*okapi::inch,degHead*okapi::degree});
+    std::shared_ptr<okapi::AsyncVelocityController<double, double>> flywheel_controller = okapi::AsyncVelControllerBuilder();
 
     
 

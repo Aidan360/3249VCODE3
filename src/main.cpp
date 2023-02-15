@@ -351,7 +351,7 @@ while(true) {
   pros::c::task_delay(250);                                                                                                                                                                                                                                                                                                                                                                                                                              
   controller2.clear();
   pros::c::task_delay(250);
-  controller1.print(0,0,"X: %f",positionX);
+  controller1.print(0,0,"V: %f",varChange);
   pros::c::task_delay(50);
   controller1.print(1,0,"Y: %f",positionY);
     pros::c::task_delay(50);
@@ -541,6 +541,7 @@ void opcontrol() {
   pros::ADIDigitalOut indexer (indexer_PORT);
   pros::Motor flyWheel (flyWheel_PORT);
   pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
+  //pros::Task my_task2(displayThread);
   float curve = 0.25;
   float left;
   float right;
@@ -554,6 +555,7 @@ void opcontrol() {
   //bool intake = false;
   //bool intakeDir = false; // false = forward true = reverse
   //double springForce = (11501.492602*(M_PI*2*flyWheelRadius))/(flyWheelRadius*2);
+  float varChange = 2000;
   while (true) {
     turretMove = controller2.get_analog(ANALOG_RIGHT_X);
     power = controller1.get_analog(ANALOG_LEFT_Y);
@@ -564,7 +566,8 @@ void opcontrol() {
     leftBackMotor.move(left);
     rightFrontMotor.move(right);
     rightBackMotor.move(right);
-    turretMotor.move(100*(((1-curve)*turretMove)/100+(curve*pow(turretMove/100,7))));
+    //turretMotor.move(100*(((1-curve)*turretMove)/100+(curve*pow(turretMove/100,7))));
+    turretMotor.move_voltage(varChange);
     intake.move(controller2.get_analog(ANALOG_LEFT_Y));
     //controller2.clear();
     //pros::delay(50);
@@ -587,20 +590,24 @@ void opcontrol() {
       pros::delay(250);
       indexer.set_value(false);
     }
+    
 
  //   controller1.clear();
  //   pros::c::task_delay(250);  
  //   controller1.print(2,0,"H: %f", (EXT_GyroTurret.get_value()/10));
- //   pros::c::task_delay(50);
-/*
-    if (controller2.get_digital(DIGITAL_UP)) {
-      distfeet = distfeet+10;
-      pros::delay(50);
+ //  pros::c::task_delay(50);
+    controller1.clear();
+    pros::c::task_delay(50); 
+    controller1.print(0,0,"V: %f",varChange);
+    pros::c::task_delay(50);
+    if (controller1.get_digital(DIGITAL_UP)) {
+      varChange = varChange+1;
+      //pros::delay(50);
     }
-    if (controller2.get_digital(DIGITAL_DOWN)) {
-      distfeet = distfeet-10;
-      pros::delay(50);
-    } */
+    if (controller1.get_digital(DIGITAL_DOWN)) {
+      varChange = varChange-1;
+     // pros::delay(50);
+    } 
 
 
 

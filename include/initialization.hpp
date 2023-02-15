@@ -1,7 +1,7 @@
 #include "api.h"
 #include "okapi/api.hpp"
 #include "okapi/impl/device/motor/motorGroup.hpp"
-
+#include "okapi/api/control/async/asyncVelocityController.hpp"
 // Smart ports
 #define leftFrontMotor_PORT 1
 #define leftBackMotor_PORT 2
@@ -34,8 +34,12 @@ extern okapi::ADIEncoder encoderRight;
 extern okapi::MotorGroup leftMotors;
 extern okapi::MotorGroup rightMotors;
 extern std::shared_ptr<okapi::OdomChassisController> chassis_controller;
+extern std::shared_ptr<okapi::AsyncVelocityController<double, double>> flywheel_controller;
 // Threads
 extern void flywheelPIDFF();
 extern void displayThread();
 extern void turretPIDFF(); 
 
+
+extern float varChange; 
+extern double M_PI = 3.14;

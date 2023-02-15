@@ -28,7 +28,7 @@
 /*Formulas*/
 
 // distance formula
-
+float varChange = 0;
 
 //v_final = sqrt((0.5 * m_object * v^2) / (0.5 * m_total))
 
@@ -144,13 +144,13 @@ void flywheelPIDFF() {
 
     // Factors 
         // PID factors
-        double kP = 2; // Proportional factor, Changes proportionally to error
-        double kI = 1; // Integral factor, Changes based on time of error
-        double kD = 0.2; // Derivate factor, Changes based on the rate of change in error
+        double kP = 0.1; // Proportional factor, Changes proportionally to error
+        double kI = 0.01; // Integral factor, Changes based on time of error
+        double kD = 0; // Derivate factor, Changes based on the rate of change in error
         // FF Factors 
-        double kS = 0.9; // Minimum voltage to get the motor moving
-        double kV = 0.85; // voltage required to sustain velocity
-        double kA = 1.5; // voltage required accelerate
+        double kS = 0; // Minimum voltage to get the motor moving
+        double kV = 0; // voltage required to sustain velocity
+        double kA = 0; // voltage required accelerate
     // Values 
     
         double integral = 0;
@@ -176,26 +176,26 @@ void flywheelPIDFF() {
      grapher->startTask();
 
     while (true) {
-        error = flyWheel.get_actual_velocity()*18 - flyWheelVelocityE(zCoordinates[1],totalDistance);
+        error = flyWheel.get_actual_velocity() - flyWheelVelocity(zCoordinates[1],totalDistance);
         integral = integral+error; // integral scales overtime
         derivative = error-lastError; // derivative changes based on feedback 
       
         pidVoltOutput = kP*error + kI*integral + kD*derivative; // PID final calculation
         
-        ffVoltOutput = (kS* sgn(flyWheelVelocityE(zCoordinates[1],totalDistance)))+(kV*flyWheelVelocityE(zCoordinates[1],totalDistance)) + (kA * (flyWheelVelocityE(zCoordinates[1],totalDistance)/10)); // feed forward final calculation
+        ffVoltOutput = (kS* sgn(flyWheelVelocity(zCoordinates[1],totalDistance)))+(kV*flyWheelVelocity(zCoordinates[1],totalDistance)) + (kA * (flyWheelVelocityE(zCoordinates[1],totalDistance)/10)); // feed forward final calculation
         
         output = pidVoltOutput + ffVoltOutput; // combines PID + FF
         flyWheel.set_reversed(true);
         flyWheel.move_voltage(output); // Final output to voltages. Voltages are powerful enough to move the turret whenever it wants to 
         
         
-        lowerLimit = flyWheelVelocityE(zCoordinates[0],totalDistance);
-        upperLimit = flyWheelVelocityE(zCoordinates[2],totalDistance);
+        lowerLimit = flyWheelVelocity(zCoordinates[0],totalDistance);
+        upperLimit = flyWheelVelocity(zCoordinates[2],totalDistance);
       
         if (upperLimit > flyWheel.get_actual_velocity()*18 > lowerLimit) {
             lockOn = true;
         }  
-        grapher->update("Desired Vel", flyWheelVelocityE(zCoordinates[1],totalDistance));
+        grapher->update("Desired Vel", flyWheelVelocity(zCoordinates[1],totalDistance));
         grapher->update("Actual Vel", flyWheel.get_actual_velocity());
         pros::c::task_delay(10);
         lastError = error;
@@ -244,9 +244,9 @@ void aimBotThread() { // auto aim thread
 }
 
 void competition_initialize() {
-       pros::Task my_task1(aimBotThread);
-       pros::Task my_task2(displayThread);
-       //pros::Task my_task3(thread3);
+     //  pros::Task my_task1(aimBotThread);
+       //pros::Task my_task2(displayThread);
+       pros::Task my_task3(flywheelPIDFF);
        //pros::Task my_task4(thread4);
 //        pros::Task my_task2(turretPIDFF);
     
