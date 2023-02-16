@@ -88,7 +88,7 @@ void turretPIDFF() {
     5: kP = 2 F
     6: kP = 10 F
     7: kP = 100 F
-    8: kP = 1000 
+    8: kP = 1000 Worked lmao
     */
 
 

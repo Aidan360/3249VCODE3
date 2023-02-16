@@ -1,4 +1,5 @@
 #include "main.h"
+#include "time.h"
 //#include "odom.h"
 #define _USE_MATH_DEFINES
 pros::ADIDigitalOut indexer (indexer_PORT);
@@ -462,7 +463,8 @@ void autonomous() {
   pros::Motor rightBackMotor (rightBackMotor_PORT);
   pros::ADIDigitalOut expansion (expansion_PORT);
   pros::Motor turretMotor (turretMotor_PORT);
-  
+  pros::IMU turretSensor (turretSensor_PORT);
+  pros::Motor rollerMotor (rollerMotor_PORT);
   //flywheelPIDFF();
   
   //flyWheel.move_voltage(950);
@@ -512,7 +514,92 @@ void autonomous() {
   //pros::delay(250);
   //turretMotor.move(127);
   //pros::delay(1000);
- 
+
+
+
+
+  /* SKILLS PSUEDO CODE
+   Starting X = 30  Y = 10.5 θ = 45 
+   Spin turret 90deg to roller
+   move roller by 200 degrees
+   Move bot 25.5 inches forward
+   Spin Turret -90 deg to roller
+   move roller by 200 degrees
+   Turn chassis 55 degrees
+   Move 142.5 inches
+   Turn chassis 40 degrees 
+   Turn turret -140 deg to roller
+   Spin Roller by 200 degrees
+   Go forward 28.5 inches
+   Turn Turret 90 deg to roller 
+   Spin roller 200 Degrees
+   Turn Chassis 50 degrees 
+   Turn Turret 40 Degrees
+   Move Chassis 39 Inches
+   Turn Chassis -90 Degrees
+   Flywheel Match loads 
+   Last 8 seconds 
+   Move chassis -47 inches
+   Turn Turret -135 
+   Launch expansion
+  */
+ float timeTrack =  pros::c::millis();
+
+  while(!(89 < turretSensor.get_rotation() < 91.1)) {
+  turretMotor.move_velocity(100);
+  }
+  rollerMotor.move_relative(200,127);
+  chassis_controller->moveDistance(25.5*okapi::inch);
+  while(!(0.01 < turretSensor.get_rotation() < 1.1)) {
+  turretMotor.move_velocity(-100);
+  }
+  rollerMotor.move_relative(200,127);
+  chassis_controller->turnAngle(-55*okapi::degree);
+  chassis_controller->moveDistance(142.5*okapi::inch);
+  chassis_controller->turnAngle(90*okapi::degree);
+  while(!(219 < turretSensor.get_rotation() < 221.1)) {
+  turretMotor.move_velocity(-100);
+  }
+  rollerMotor.move_relative(200,127);
+  chassis_controller->moveDistance(28.5*okapi::inch);
+  while(!(309 < turretSensor.get_rotation() < 311.1)) {
+  turretMotor.move_velocity(100);
+  }
+  rollerMotor.move_relative(200,127);
+  chassis_controller->turnAngle(50*okapi::degree);
+  while(!(269 < turretSensor.get_rotation() < 271.1)) {
+  turretMotor.move_velocity(100);
+  }
+  chassis_controller->moveDistance(39*okapi::inch);
+  chassis_controller->turnAngle(-95*okapi::degree);
+  
+  while (pros::c::millis() < 51999) {
+    flywheel_controller->setTarget(100);
+    intake.move_velocity(100);
+    indexer.set_value(true);
+    pros::delay(250);
+    indexer.set_value(false);
+    pros::delay(1250);
+  }
+  
+  chassis_controller->moveDistance(-47*okapi::inch);
+  while(!(134 < turretSensor.get_rotation() < 136.1)) {
+  turretMotor.move_velocity(100);
+  }
+  
+  expansion.set_value(true);
+  pros::delay(250);
+  expansion.set_value(false);
+  pros::delay(250);
+  expansion.set_value(true);
+  pros::delay(250);
+  expansion.set_value(false);
+  pros::delay(250);
+  expansion.set_value(true);
+  pros::delay(250);
+  expansion.set_value(false);
+  pros::delay(250);
+
 }
 
 /**

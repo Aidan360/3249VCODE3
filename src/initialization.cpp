@@ -6,6 +6,7 @@
 #include "okapi/api/units/QTime.hpp"
 #include "okapi/api/util/mathUtil.hpp"
 #include "okapi/impl/device/rotarysensor/integratedEncoder.hpp"
+#include "pros/motors.h"
 
 okapi::MotorGroup leftMotors = {1,2};
 okapi::MotorGroup rightMotors = {3,4};
@@ -13,10 +14,11 @@ okapi::Motor flyWheel_Motor = 9;
 okapi::ADIEncoder encoderLeft = {'C','D'};
 okapi::ADIEncoder encoderRight = {'E','F'};
 okapi::ADIEncoder encoderBack = {'G','H'};
+okapi::Motor turret_Motor = 6;
 okapi::IMU turret_Sensor = 5;
-double positionX = 70;
-double positionY = 70;
-double degHead = 45;
+double positionX = 0;
+double positionY = 0;
+double degHead = 0;
 float dragWheelDiamater = 2.75; // drag wheel radius
 double dragWheelCirc = dragWheelDiamater*M_PI;
 double gravity = -386.08858267717; // inches per second
@@ -59,13 +61,14 @@ void initialize() {
     pros::Motor turretMotor_initializer (turretMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
     pros::Motor intake_initializer (intakeMotor_PORT, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
     pros::Motor flywheel_initializer (flyWheel_PORT,pros::E_MOTOR_GEARSET_18,false,pros::E_MOTOR_ENCODER_DEGREES);
+    pros::Motor rollerMotor_initializer (rollerMotor_PORT,pros::E_MOTOR_GEARSET_18,false,pros::E_MOTOR_ENCODER_DEGREES);
     pros::ADIEncoder encoderL_initializer (encoderLeftTop_PORT,encoderLeftBottom_PORT, false);
     pros::ADIEncoder encoderR_initializer (encoderRightTop_PORT,encoderRightBottom_PORT, false);
     pros::ADIEncoder encoderB_initializer (encoderBackTop_PORT,encoderBackBottom_PORT, false);
     pros::ADIDigitalOut indexer_initializer (indexer_PORT);
     pros::ADIDigitalOut expansion_initializer (expansion_PORT);
     pros::ADIDigitalIn intakeSensor_initializer ({{expander_PORT,EXT_IntakeSensorPort}});  
-    pros::ADIGyro EXT_GyroTurret_initializer ({{expander_PORT,EXT_GyroTurretPort}});
+    pros::IMU turretSensor_initializer (turretSensor_PORT);
     
     pros::ADIEncoder encoderL (encoderLeftTop_PORT,encoderLeftBottom_PORT);
     pros::ADIEncoder encoderR (encoderRightTop_PORT,encoderRightBottom_PORT);
@@ -125,13 +128,22 @@ void initialize() {
       )
       .notParentedToCurrentTask()
       .build();
-    std::shared_ptr<okapi::AsyncPositionController<double, double>> turret_controller = okapi::AsyncPosControllerBuilder ()
-      .withMotor(
-
+    
+    std::shared_ptr<okapi::AsyncPositionController<double, double>> turret_controller = okapi::AsyncPosControllerBuilder()
+      .withMotor (
+        turret_Motor
       )
       .withSensor (
-        okapi::IMU
+        okapi::IntegratedEncoder(turret_Motor)
       )
+      .withGearset (
+        okapi::AbstractMotor::gearset::green
+      )
+      .withLogger(
+      okapi::Logger::getDefaultLogger()
+      )
+      .notParentedToCurrentTask()
+      .build();
 
 	  //chassis_max_vel = chassis_model -> getMaxVelocity();
     // EXT_GyroTurret.calibrate;

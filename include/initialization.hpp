@@ -7,11 +7,13 @@
 #define leftBackMotor_PORT 2
 #define rightFrontMotor_PORT 3
 #define rightBackMotor_PORT 4
-#define flyWheel_PORT 9
+#define turretSensor_PORT 5
 #define turretMotor_PORT 6
+#define rollerMotor_PORT 7
 #define intakeMotor_PORT 8
-//#define eigthMotorPort 8;
+#define flyWheel_PORT 9
 #define expander_PORT 10
+
 // Brain 3-Wire Ports
 #define expansion_PORT 1
 #define indexer_PORT 2
