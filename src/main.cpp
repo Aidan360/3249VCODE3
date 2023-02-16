@@ -547,34 +547,53 @@ void autonomous() {
 
   while(!(89 < turretSensor.get_rotation() < 91.1)) {
   turretMotor.move_velocity(100);
+  pros::delay(1);
   }
   rollerMotor.move_relative(200,127);
+  while (!(199 < rollerMotor.get_position() < 201.1)) {
+    pros::delay(1);
+  }
+  intake.move_velocity(200);
   chassis_controller->moveDistance(25.5*okapi::inch);
   while(!(0.01 < turretSensor.get_rotation() < 1.1)) {
   turretMotor.move_velocity(-100);
+  pros::delay(1);
   }
   rollerMotor.move_relative(200,127);
+  while (!(399 < rollerMotor.get_position() < 401.1)) {
+    pros::delay(1);
+  }
+  intake.move_velocity(0);
   chassis_controller->turnAngle(-55*okapi::degree);
   chassis_controller->moveDistance(142.5*okapi::inch);
   chassis_controller->turnAngle(90*okapi::degree);
   while(!(219 < turretSensor.get_rotation() < 221.1)) {
   turretMotor.move_velocity(-100);
+  pros::delay(1);
   }
   rollerMotor.move_relative(200,127);
+  while (!(599 < rollerMotor.get_position() < 601.1)) {
+    pros::delay(1);
+  }
   chassis_controller->moveDistance(28.5*okapi::inch);
   while(!(309 < turretSensor.get_rotation() < 311.1)) {
   turretMotor.move_velocity(100);
+    pros::delay(1);
   }
   rollerMotor.move_relative(200,127);
+  while (!(799 < rollerMotor.get_position() < 801.1)) {
+    pros::delay(1);
+  }
   chassis_controller->turnAngle(50*okapi::degree);
   while(!(269 < turretSensor.get_rotation() < 271.1)) {
   turretMotor.move_velocity(100);
+    pros::delay(1);
   }
   chassis_controller->moveDistance(39*okapi::inch);
   chassis_controller->turnAngle(-95*okapi::degree);
   
   while (pros::c::millis() < 51999) {
-    flywheel_controller->setTarget(100);
+    flywheel_controller->setTarget(52);
     intake.move_velocity(100);
     indexer.set_value(true);
     pros::delay(250);
