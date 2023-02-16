@@ -13,6 +13,7 @@ okapi::Motor flyWheel_Motor = 9;
 okapi::ADIEncoder encoderLeft = {'C','D'};
 okapi::ADIEncoder encoderRight = {'E','F'};
 okapi::ADIEncoder encoderBack = {'G','H'};
+okapi::IMU turret_Sensor = 5;
 double positionX = 70;
 double positionY = 70;
 double degHead = 45;
@@ -124,7 +125,13 @@ void initialize() {
       )
       .notParentedToCurrentTask()
       .build();
-    
+    std::shared_ptr<okapi::AsyncPositionController<double, double>> turret_controller = okapi::AsyncPosControllerBuilder ()
+      .withMotor(
+
+      )
+      .withSensor (
+        okapi::IMU
+      )
 
 	  //chassis_max_vel = chassis_model -> getMaxVelocity();
     // EXT_GyroTurret.calibrate;
