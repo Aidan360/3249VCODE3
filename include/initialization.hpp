@@ -1,3 +1,4 @@
+#pragma once
 #include "api.h"
 #include "okapi/api.hpp"
 #include "okapi/impl/device/motor/motorGroup.hpp"

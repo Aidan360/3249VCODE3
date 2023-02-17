@@ -7,6 +7,7 @@
 #include "okapi/api/util/mathUtil.hpp"
 #include "okapi/impl/device/rotarysensor/integratedEncoder.hpp"
 #include "pros/motors.h"
+#include "initialization.hpp"
 
 okapi::MotorGroup leftMotors = {1,2};
 okapi::MotorGroup rightMotors = {3,4};
@@ -50,6 +51,9 @@ double gravity = -386.08858267717; // inches per second
   float middleLineX2 = 140.02;
   float middleLineY1 = 0;
   float middleLineXY = 140.02;
+  std::shared_ptr<okapi::OdomChassisController> chassis_controller;
+  std::shared_ptr<okapi::AsyncVelocityController<double, double> > flywheel_controller;
+std::shared_ptr<okapi::AsyncPositionController<double, double>> turret_controller;
 void initialize() {
 
 //double M_PI = 3.14159265358979323846264338327950288;
@@ -69,18 +73,21 @@ void initialize() {
     pros::ADIDigitalOut expansion_initializer (expansion_PORT);
     pros::ADIDigitalIn intakeSensor_initializer ({{expander_PORT,EXT_IntakeSensorPort}});  
     pros::IMU turretSensor_initializer (turretSensor_PORT);
-    
+    pros::IMU turretSensor (turretSensor_PORT);
     pros::ADIEncoder encoderL (encoderLeftTop_PORT,encoderLeftBottom_PORT);
     pros::ADIEncoder encoderR (encoderRightTop_PORT,encoderRightBottom_PORT);
     pros::ADIEncoder encoderB (encoderBackTop_PORT,encoderBackBottom_PORT);
     pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
+    pros::Motor rollerMotor (rollerMotor_PORT);
     encoderL.reset();
     encoderR.reset();
     encoderB.reset();
+    rollerMotor.tare_position();
+    turretSensor.tare_rotation();
     EXT_GyroTurret.reset();
     pros::delay(500);
     
-  std::shared_ptr<okapi::OdomChassisController> chassis_controller = okapi::ChassisControllerBuilder() 
+ std::shared_ptr<okapi::OdomChassisController> chassis_controller = okapi::ChassisControllerBuilder()
     .withMotors (
       leftMotors,
       rightMotors
@@ -110,10 +117,10 @@ void initialize() {
   	.buildOdometry();
     std::shared_ptr<okapi::SkidSteerModel> chassis_model = std::dynamic_pointer_cast<okapi::SkidSteerModel>(chassis_controller -> getModel());
     
-    chassis_controller -> setState({positionX*okapi::inch,positionY*okapi::inch,degHead*okapi::degree});
+  chassis_controller -> setState({positionX*okapi::inch,positionY*okapi::inch,degHead*okapi::degree});
     
     
-    std::shared_ptr<okapi::AsyncVelocityController<double, double> > flywheel_controller = okapi::AsyncVelControllerBuilder()
+  std::shared_ptr<okapi::AsyncVelocityController<double, double> > flywheel_controller = okapi::AsyncVelControllerBuilder()
       .withMotor (
         flyWheel_Motor
       )
@@ -129,7 +136,7 @@ void initialize() {
       .notParentedToCurrentTask()
       .build();
     
-    std::shared_ptr<okapi::AsyncPositionController<double, double>> turret_controller = okapi::AsyncPosControllerBuilder()
+  std::shared_ptr<okapi::AsyncPositionController<double, double>> turret_controller = okapi::AsyncPosControllerBuilder()
       .withMotor (
         turret_Motor
       )

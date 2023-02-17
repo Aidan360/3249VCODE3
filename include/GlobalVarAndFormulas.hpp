@@ -1,3 +1,5 @@
+#pragma once
+#include "main.h"
 extern float dragWheelDiamater; // drag wheel radius
 extern double dragWheelCirc;
 extern double gravity ; // inches per second

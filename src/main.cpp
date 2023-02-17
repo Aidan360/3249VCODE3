@@ -1,5 +1,6 @@
 #include "main.h"
 #include "time.h"
+#include "initialization.hpp"
 //#include "odom.h"
 #define _USE_MATH_DEFINES
 pros::ADIDigitalOut indexer (indexer_PORT);

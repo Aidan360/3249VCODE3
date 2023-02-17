@@ -1,4 +1,5 @@
 #include "main.h"
+#include "initialization.hpp"
 #include <iostream>
 //#include "pros/apix.h"
 //#include <cmath>
@@ -217,9 +218,9 @@ void flywheelPIDFF() {
     }
 }
 
-    pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
-    std::shared_ptr<okapi::OdomChassisController> chassis_controller;
-    std::shared_ptr<okapi::AsyncVelocityController<double, double> > flywheel_controller;
+// ({{expander_PORT,EXT_GyroTurretPort}});
+//std::shared_ptr<okapi::OdomChassisController> chassis_controller;
+//std::shared_ptr<okapi::AsyncVelocityController<double, double> > flywheel_controller;
 
 void aimBotThread() { // auto aim thread
    // positionX = chassis_controller -> getState().x.convert(okapi::inch);
@@ -249,8 +250,8 @@ void aimBotThread() { // auto aim thread
     while(true) {
         
       positionX = chassis_controller -> getState().x.convert(okapi::inch);
-       // positionY = chassis_controller -> getState().y.convert(okapi::inch);    
-      // degHead = chassis_controller -> getState().theta.convert(okapi::degree);
+      positionY = chassis_controller -> getState().y.convert(okapi::inch);    
+      degHead = chassis_controller -> getState().theta.convert(okapi::degree);
        totalDistance = findDistance(coordinateLocations[0][target],positionX,coordinateLocations[1][target],positionY);
   //      flywheel_controller -> setTarget(flyWheelVelocityCalc(zCoordinates[1],totalDistance));
         pros::c::task_delay(10);
@@ -258,11 +259,11 @@ void aimBotThread() { // auto aim thread
 }
 
 void competition_initialize() {
-   // pros::Task my_task1(aimBotThread);
+    pros::Task my_task1(aimBotThread);
     pros::Task my_task5(displayThread);
       // pros::Task my_task3(flywheelPIDFF);
        //pros::Task my_task4(thread4);
-    pros::Task my_task2(turretPIDFF);
+    //pros::Task my_task2(turretPIDFF);
     
 
 }
