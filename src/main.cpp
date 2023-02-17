@@ -54,33 +54,7 @@ float gameTime = 105;
 int null = 0;
 int target;
 bool activePID;
-/* Calculations */ /*
-double findAngle(int selector, double x = 0) { // selector uses coordniate list
-//m=(y2-y1)/(x2-x1) slope formula
-x = (180/M_PI)/(atan((positionY - coordinateLocations[1][selector])/(positionX - coordinateLocations[0][selector])));
-return(x);
-} */
-double findAngleMove(double X,double Y,double dest = 0) { // in degrees NOT radains
-dest = (180/M_PI)*(atan((Y - positionY)/( X- positionX)));
-return(dest);
-} 
-/*double findDistance(double X1, double Y1, double X2, double Y2, double dist = 0) {
-dist = sqrt(pow(Y2-Y1,2)+pow(X2-X1,2));
-return(dist );
-} */
-// misc
-//double abs(double n) {
-//if (n <= 0) {
-//  n =+ n*-1;
-//}
-//return(n);
-//}
 
-/*
-double radians(double deg, double x = 0) {
-x = (deg*(M_PI/180));
-return(x);
-} */
 /* Threads */
 /* How to make threads
 void thread1() {
@@ -244,97 +218,7 @@ turretDisc = false;
 }
 */
 
-/*
-int thread1() { // Position thread If it ever breaks we dead
 
-
-
-New Psuedocode
-Get raw distance travelled.
-send to MOVE pid
-move PID work?
-
-
-
-  double diffrence = 0;
-  double pDiffrence = 0;
-  double vDiffrence = 0;
-  double vBackWheelDiffrence = 0;
-  double backWheelDiffrence = 0;
-  double pBackWheelDiffrence = 0;
-  double lastEncoderL = 0;
-  double lastEncoderR = 0;
-  double lastEncoderB = 0;
-  double encoderVL = 0;
-  double encoderVR = 0;
-  double encoderVB = 0;
-  double encoderVVL = 0;
-  double encoderVVR = 0;
-  double encoderVVB = 0;
-  double positionB = 0;
-  double pPositionX = 0;
-  double pPositionY = 0;
-  double dragDegrees = (dragWheelCirc/360);
-  double vDegHead = 0;
-  pros::ADIEncoder encoderL (encoderLeftTop_PORT,encoderLeftBottom_PORT);
-  pros::ADIEncoder encoderR (encoderRightTop_PORT,encoderRightBottom_PORT);
-  pros::ADIEncoder encoderB (encoderBackTop_PORT,encoderBackBottom_PORT);
-    encoderL.reset();
-    encoderR.reset();
-    encoderB.reset();
-  while(true) {
-  encoderVL = (encoderL.get_value() - lastEncoderL)*dragDegrees;
-  encoderVR = (encoderR.get_value() - lastEncoderR)*dragDegrees;
-  encoderVB = (encoderB.get_value() - lastEncoderB)*dragDegrees;
-
-
-  //  encoderVVL = encoderL.velocity(dps);
-  //  encoderVVR = encoderR.velocity(dps);
-  //  encoderVVB = encoderB.velocity(dps);
- 
-    //vDiffrence = encoderVVL - encoderVVR;
-    lastdegHead = degHead;
-    //degHead += (2*M_PI*offsets[1])/360*(diffrence)*dragDegrees*(180/M_PI);  // tracking offset L and R should be the same no matter what
-    degHead += (((encoderVL-encoderVR))/leftRightLength)*(180/M_PI);
-    vDegHead = degHead - lastdegHead;
-    //rotVelocity = (2*M_PI*offsets[1]/360*(vDiffrence)*dragDegrees)*(180/M_PI);
-    //degHead = (2*offsets[0]*diffrence*dragWheelCirc*180)/pow(360,2);
-    //vBackWheelDiffrence = encoderVVB - offsets[0]*diffrence/offsets[2];
-
-    if ((degHead >= 360)) {
-    degHead = degHead-360;
-    }
-    else if ((degHead <= 0)) {
-      degHead = degHead+360;
-    } 
- //     dist = ((encoderVR+encoderVL)*sin(radians(degHead)/2))/degHead;
- 
-//    if((180 < degHead)) {
-  //    positionX += ((sin(radians(degHead+vDegHead/2))*dist+(sin(radians(degHead+vDegHead/2))*encoderVB)));
-  //    positionY += ((cos(radians(degHead+vDegHead/2))*dist-(cos(radians(degHead+vDegHead/2))*encoderVB)));
- //     velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)))*-1;
- //     velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)))*-1;
-    //}
-  //  else {
-    //  positionX += (cos(radians(degHead))*dist+(sin(radians(degHead))*positionB));
-     // positionY += (sin(radians(degHead))*dist+(cos(radians(degHead))*positionB));
-  //    velocityX = (dragDegrees*cos(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(sin(radians(degHead))*(encoderVVB)));
-  //    velocityY = (dragDegrees*sin(radians(degHead))*(encoderVVL+encoderVVR-vDiffrence)/2+dragDegrees*(cos(radians(degHead))*(encoderVVB)));
-    //}
-    lastEncoderL = encoderL.get_value();
-    lastEncoderR = encoderR.get_value();
-    lastEncoderB = encoderB.get_value();
-    pDiffrence = diffrence;
-    pBackWheelDiffrence = backWheelDiffrence;
-    velocityX = positionX - pPositionX;
-    velocityY = positionY - pPositionY;
-
-
-
-
-  // I NEED VELOCITY FOR AIMBOT
-  }
-} */
 void displayThread() { // Controller screen thread
 thread2On = true;
 while(true) {
@@ -546,7 +430,7 @@ void autonomous() {
   */
  float timeTrack =  pros::c::millis();
 
-  while(!(89 < turretSensor.get_rotation() < 91.1)) {
+  while((89 > turretSensor.get_rotation() > 91.1)) {
   turretMotor.move_velocity(100);
   pros::delay(1);
   }
@@ -659,9 +543,6 @@ void opcontrol() {
   double vFinal = 0;
   double flywheelRPM = 0;
   double turretMove = 0;
-  //bool intake = false;
-  //bool intakeDir = false; // false = forward true = reverse
-  //double springForce = (11501.492602*(M_PI*2*flyWheelRadius))/(flyWheelRadius*2);
   float varChange = 2000;
   while (true) {
     turretMove = controller2.get_analog(ANALOG_RIGHT_X);
@@ -715,15 +596,6 @@ void opcontrol() {
       varChange = varChange-10;
      // pros::delay(50);
     } 
-
-
-
-/*
-    leftFrontMotor.spin(forward,(Controller1.Axis3.position() + Controller1.Axis1.position())^2/100,velocityUnits::pct); // Arcade control
-    leftBackMotor.spin(forward,(Controller1.Axis3.position() + Controller1.Axis1.position())^2/100,velocityUnits::pct);
-    rightFrontMotor.spin(forward,(Controller1.Axis3.position() - Controller1.Axis1.position())^2/100,velocityUnits::pct);
-    rightBackMotor.spin(forward,(Controller1.Axis3.position() - Controller1.Axis1.position())^2/100,velocityUnits::pct);
-*/
     pros::delay(50);
   }
 }

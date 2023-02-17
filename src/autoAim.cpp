@@ -78,7 +78,7 @@ int turretPID() {
 // Pissing Incels degrade at Fur fest (PID controller + Feed forward)
 void turretPIDFF() {
     pros::Motor turretMotor (turretMotor_PORT);
-    pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
+    pros::IMU turretSensor (turretSensor_PORT);
 
 
     /* log  
@@ -105,9 +105,10 @@ void turretPIDFF() {
      //   double kA = 2.3; // voltage required accelerate
     // Values 
         double integral = 0;
-        double derivative = 0;
-        double error = EXT_GyroTurret.get_value()-atan2(positionY-coordinateLocations[1][target],positionX-coordinateLocations[0][target]);
-        double lastError = EXT_GyroTurret.get_value()-atan2(positionY-coordinateLocations[1][target],positionX-coordinateLocations[0][target]);
+        double derivative = 0; 
+        // Error = Sensor - Target
+        double error = turretSensor.get_rotation()-atan2(positionY-coordinateLocations[1][target],positionX-coordinateLocations[0][target]);
+        double lastError = turretSensor.get_rotation()-atan2(positionY-coordinateLocations[1][target],positionX-coordinateLocations[0][target]);
         double output;
         double goalRadius = 15.73/2; // inches for limits
         // The upper and limit changes based off of how far the robot is away from the goal
@@ -121,14 +122,17 @@ void turretPIDFF() {
         double pidVoltOutput; // Output = kP*error + kI*Integral[error] + kD*Derivative[error]
         double ffVoltOutput = 0; // output = (kS * sgn(V)) + (kV * V) + (kA * A) + kG
     while (true) {
-        error = EXT_GyroTurret.get_value()-atan2(positionY-coordinateLocations[1][target],positionX-coordinateLocations[0][target]);
+        error = turretSensor.get_rotation()-atan2(positionY-coordinateLocations[1][target],positionX-coordinateLocations[0][target]);
         integral = integral+error; // integral scales overtime
         derivative = error-lastError; // derivative changes based on feedback 
       
         pidVoltOutput = kP*error + kI*integral + kD*derivative; // PID final calculation
         //ffVoltOutput = (kS* sgn(turretVelocity))+(kV*turretVelocity) + (kA * turretAcceleration); // feed forward final calculation
         output = pidVoltOutput; //+ ffVoltOutput; // combines PID + FF
-      
+
+        if(0.1 >= abs(error)) {
+            integral = 0;
+        }
         if (sgn(error) == 1) { // because I'm running voltages I gotta set the motor direction 
             turretMotor.set_reversed(true);
         }
@@ -144,7 +148,7 @@ void turretPIDFF() {
             (positionY - (coordinateLocations[1][target] + goalRadius)),
             (positionX - (coordinateLocations[0][target] + goalRadius)));
 
-        if (upperLimit > EXT_GyroTurret.get_value() > lowerLimit) {
+        if (upperLimit > turretSensor.get_rotation() > lowerLimit) {
             lockOn = true;
         }  
         pros::c::task_delay(10);
@@ -248,19 +252,21 @@ void aimBotThread() { // auto aim thread
     pros::Motor flyWheel (flyWheel_PORT);
     //task myTask = task(turretPID);
     while(true) {
-        
-      positionX = chassis_controller -> getState().x.convert(okapi::inch);
-      positionY = chassis_controller -> getState().y.convert(okapi::inch);    
-      degHead = chassis_controller -> getState().theta.convert(okapi::degree);
-       totalDistance = findDistance(coordinateLocations[0][target],positionX,coordinateLocations[1][target],positionY);
-  //      flywheel_controller -> setTarget(flyWheelVelocityCalc(zCoordinates[1],totalDistance));
+        positionX = chassis_controller -> getState().x.convert(okapi::inch);
+        positionY = chassis_controller -> getState().y.convert(okapi::inch);    
+        degHead = chassis_controller -> getState().theta.convert(okapi::degree);
+        totalDistance = findDistance(coordinateLocations[0][target],positionX,coordinateLocations[1][target],positionY);
+        flywheel_controller -> setTarget(flyWheelVelocityCalc(zCoordinates[1],totalDistance));
         pros::c::task_delay(10);
     }
 }
 
 void competition_initialize() {
-    pros::Task my_task1(aimBotThread);
-    pros::Task my_task5(displayThread);
+    pros::Task odom(aimBotThread, 9, TASK_STACK_DEPTH_DEFAULT, "OdometryT1");
+    pros::Task turretMove(turretPIDFF, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "TurretAimT2");
+    pros::Task flyWheelVel(flywheelPIDFF, TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"FlywheelVelT3");
+    pros::Task display0(displayThread, TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"DisplayLCDT4");
+    //pros::Task flyWheelVel(flywheelPIDFF, TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"FlywheelVelT3");
       // pros::Task my_task3(flywheelPIDFF);
        //pros::Task my_task4(thread4);
     //pros::Task my_task2(turretPIDFF);

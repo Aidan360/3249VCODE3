@@ -1,5 +1,4 @@
 #pragma once
-#include "main.h"
 extern float dragWheelDiamater; // drag wheel radius
 extern double dragWheelCirc;
 extern double gravity ; // inches per second
@@ -52,7 +51,8 @@ extern double positionX;
 extern double positionY;
 extern double velocityX;
 extern double velocityY;
-extern double rotVelocity;
+extern double turretVelocity;
+extern double flyVelocity;
 extern double dist;
 // blue near the red high goal and red is near the blue high goal  0,0 is the bottom RIGHT of the feild
 // Object coordinates for object locations from 0,0 in inchesf
