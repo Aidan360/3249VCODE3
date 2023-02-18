@@ -10,7 +10,7 @@
 #include "initialization.hpp"
 
 okapi::MotorGroup leftMotors = {1,2};
-okapi::MotorGroup rightMotors = {-3,-4};
+okapi::MotorGroup rightMotors = {3,4};
 okapi::Motor flyWheel_Motor = 9;
 okapi::ADIEncoder encoderLeft = {'C','D'};
 okapi::ADIEncoder encoderRight = {'E','F'};
@@ -91,14 +91,14 @@ void initialize() {
     chassis_controller = okapi::ChassisControllerBuilder()
     .withMotors (
       {1,2}, // Left 
-      {-3, -4} // Right Motors (reversed)
+      {3, 4} // Right Motors (reversed)
     )
     //		// Gearset | gear ratio | wheel diameter | wheel track (driving) | TPR
 	//	.withDimensions({okapi::AbstractMotor::gearset::green, (1./1.)}, {{3.25_in, 15._in + 15._in/16.}, okapi::imev5GreenTPR})
     .withDimensions(
       okapi::AbstractMotor::gearset::green, 
       {{4.125*okapi::inch, // Wheel Diametr
-      15.75*okapi::inch},  // Wheel Track
+      44*okapi::millimeter},  // Wheel Track
       okapi::imev5GreenTPR}) // Gear Setup
     .withSensors(        
         encoderLeft, // left encoder in ADI ports A & B

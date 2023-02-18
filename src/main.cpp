@@ -428,7 +428,8 @@ void autonomous() {
    Turn Turret -135 
    Launch expansion
   */
- float timeTrack =  pros::c::millis();
+   chassis_controller->moveDistance(12*okapi::inch);
+
   //turretMotor.move_voltage(6000);
   //while(!(89 < turretSensor.get_rotation()) && !(91 > turretSensor.get_rotation())) {
   //pros::delay(1);

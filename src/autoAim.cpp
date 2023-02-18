@@ -89,14 +89,26 @@ void turretPIDFF() {
     5: kP = 2 F
     6: kP = 10 F
     7: kP = 100 F
-    8: kP = 1000 Worked lmao
+    8: kP = 1000 Worked lmao (2/15/23)
+    2/17/23
+    Now with Inertial
+    1: kP = 120 Worked when pushed but not enough power to work on its own
+    2: kP = 400 Same as last
+    3: kP = 800 Lots of clicking now
+    4: kP = 1000 F
+    5: kP = 2000 F
+    6: kP = 5000 
+    
+    
+    
     */
+
 
 
 
     // Factors 
         // PID factors
-        double kP = 1000; // Proportional factor, Changes proportionally to error
+        double kP = 5000; // Proportional factor, Changes proportionally to error
         double kI = 0.00; // Integral factor, Changes based on time of error
         double kD = 0; // Derivate factor, Changes based on the rate of change in error
         // FF Factors 
@@ -122,7 +134,9 @@ void turretPIDFF() {
         double pidVoltOutput; // Output = kP*error + kI*Integral[error] + kD*Derivative[error]
         double ffVoltOutput = 0; // output = (kS * sgn(V)) + (kV * V) + (kA * A) + kG
     while (true) {
-        error = turretSensor.get_rotation()-atan2(positionY-coordinateLocations[1][target],positionX-coordinateLocations[0][target]);
+       // error = turretSensor.get_rotation()-atan2(positionY-coordinateLocations[1][target],positionX-coordinateLocations[0][target]);
+       error = turretSensor.get_rotation() - 45;
+       
         integral = integral+error; // integral scales overtime
         derivative = error-lastError; // derivative changes based on feedback 
       
@@ -256,15 +270,15 @@ void aimBotThread() { // auto aim thread
         positionY = chassis_controller -> getState().y.convert(okapi::inch);    
         degHead = chassis_controller -> getState().theta.convert(okapi::degree);
         totalDistance = findDistance(coordinateLocations[0][target],positionX,coordinateLocations[1][target],positionY);
-        flywheel_controller -> setTarget(flyWheelVelocityCalc(zCoordinates[1],totalDistance));
+        //flywheel_controller -> setTarget(flyWheelVelocityCalc(zCoordinates[1],totalDistance));
         pros::c::task_delay(10);
     }
 }
 
 void competition_initialize() {
     pros::Task odom(aimBotThread, 9, TASK_STACK_DEPTH_DEFAULT, "OdometryT1");
-   // pros::Task turretMove(turretPIDFF, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "TurretAimT2");
-    pros::Task flyWheelVel(flywheelPIDFF, TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"FlywheelVelT3");
+    pros::Task turretMove(turretPIDFF, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "TurretAimT2");
+    //pros::Task flyWheelVel(flywheelPIDFF, TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"FlywheelVelT3");
     pros::Task display0(displayThread, TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"DisplayLCDT4");
     //pros::Task flyWheelVel(flywheelPIDFF, TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"FlywheelVelT3");
       // pros::Task my_task3(flywheelPIDFF);
