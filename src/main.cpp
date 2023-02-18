@@ -237,7 +237,7 @@ while(true) {
   pros::c::task_delay(250);                                                                                                                                                                                                                                                                                                                                                                                                                              
   controller2.clear();
   pros::c::task_delay(250);
-  controller1.print(0,0,"X: %f",EXT_GyroTurret.get_value());
+  controller1.print(0,0,"X: %f",positionX);
   pros::c::task_delay(50);
   controller1.print(1,0,"Y: %f",positionY);
     pros::c::task_delay(50);
@@ -429,12 +429,12 @@ void autonomous() {
    Launch expansion
   */
  float timeTrack =  pros::c::millis();
-
-  while((89 > turretSensor.get_rotation() > 91.1)) {
-  turretMotor.move_velocity(100);
-  pros::delay(1);
-  }
-  rollerMotor.move_relative(200,127);
+  //turretMotor.move_voltage(6000);
+  //while(!(89 < turretSensor.get_rotation()) && !(91 > turretSensor.get_rotation())) {
+  //pros::delay(1);
+  //}
+  //turretMotor.move_velocity(0);
+  /*rollerMotor.move_relative(200,127);
   while (!(199 < rollerMotor.get_position() < 201.1)) {
     pros::delay(1);
   }
@@ -503,7 +503,7 @@ void autonomous() {
   pros::delay(250);
   expansion.set_value(false);
   pros::delay(250);
-
+ */
 }
 
 /**

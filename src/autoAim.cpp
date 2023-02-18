@@ -263,7 +263,7 @@ void aimBotThread() { // auto aim thread
 
 void competition_initialize() {
     pros::Task odom(aimBotThread, 9, TASK_STACK_DEPTH_DEFAULT, "OdometryT1");
-    pros::Task turretMove(turretPIDFF, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "TurretAimT2");
+   // pros::Task turretMove(turretPIDFF, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "TurretAimT2");
     pros::Task flyWheelVel(flywheelPIDFF, TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"FlywheelVelT3");
     pros::Task display0(displayThread, TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"DisplayLCDT4");
     //pros::Task flyWheelVel(flywheelPIDFF, TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"FlywheelVelT3");

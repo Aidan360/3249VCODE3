@@ -10,13 +10,17 @@
 #include "initialization.hpp"
 
 okapi::MotorGroup leftMotors = {1,2};
-okapi::MotorGroup rightMotors = {3,4};
+okapi::MotorGroup rightMotors = {-3,-4};
 okapi::Motor flyWheel_Motor = 9;
 okapi::ADIEncoder encoderLeft = {'C','D'};
 okapi::ADIEncoder encoderRight = {'E','F'};
 okapi::ADIEncoder encoderBack = {'G','H'};
 okapi::Motor turret_Motor = 6;
 okapi::IMU turret_Sensor = 5;
+std::shared_ptr<okapi::OdomChassisController> chassis_controller;
+std::shared_ptr<okapi::AsyncVelocityController<double, double>> flywheel_controller;
+std::shared_ptr<okapi::AsyncPositionController<double, double>> turret_controller;
+std::shared_ptr<okapi::SkidSteerModel> chassis_model;
 double positionX = 0;
 double positionY = 0;
 double degHead = 0;
