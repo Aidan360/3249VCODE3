@@ -97,7 +97,9 @@ void turretPIDFF() {
     3: kP = 800 Lots of clicking now
     4: kP = 1000 F
     5: kP = 2000 F
-    6: kP = 5000 
+    6: kP = 5000 F 
+    Now thinking about it 45000 volts should NOT happen 
+    7: kP = 
     
     
     
@@ -108,7 +110,7 @@ void turretPIDFF() {
 
     // Factors 
         // PID factors
-        double kP = 5000; // Proportional factor, Changes proportionally to error
+        double kP = 1000; // Proportional factor, Changes proportionally to error
         double kI = 0.00; // Integral factor, Changes based on time of error
         double kD = 0; // Derivate factor, Changes based on the rate of change in error
         // FF Factors 
