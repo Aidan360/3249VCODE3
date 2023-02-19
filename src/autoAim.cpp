@@ -272,7 +272,7 @@ void aimBotThread() { // auto aim thread
         positionY = chassis_controller -> getState().y.convert(okapi::inch);    
         degHead = chassis_controller -> getState().theta.convert(okapi::degree);
         totalDistance = findDistance(coordinateLocations[0][target],positionX,coordinateLocations[1][target],positionY);
-        //flywheel_controller -> setTarget(flyWheelVelocityCalc(zCoordinates[1],totalDistance));
+        flywheel_controller -> setTarget(distfeet);
         pros::c::task_delay(10);
     }
 }

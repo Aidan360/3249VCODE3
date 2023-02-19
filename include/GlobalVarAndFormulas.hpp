@@ -73,6 +73,7 @@ extern int target;
 extern bool aimBot;
 extern bool flyWheelCalc;
 extern bool lockOn;
+extern double distfeet;
 
 /*Formulas*/
 extern double findDistance(double X1, double Y1, double X2, double Y2, double dist = 0);

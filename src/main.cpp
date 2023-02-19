@@ -233,16 +233,20 @@ while(true) {
   | Power: 89%                  |
   \_____________________________/
   */
-  controller1.clear();
-  pros::c::task_delay(250);                                                                                                                                                                                                                                                                                                                                                                                                                              
+  //controller1.clear();
+  //pros::c::task_delay(250);                                                                                                                                                                                                                                                                                                                                                                                                                              
   controller2.clear();
-  pros::c::task_delay(250);
+  pros::c::task_delay(50);
+  controller2.print(0,0,"D: %f", distfeet);
+  pros::c::task_delay(50);
+  /*
   controller1.print(0,0,"X: %f",positionX);
   pros::c::task_delay(50);
   controller1.print(1,0,"Y: %f",positionY);
     pros::c::task_delay(50);
   controller1.print(2,0,"H: %f", degHead);
-    pros::c::task_delay(50);
+    pros::c::task_delay(50); */
+
  // controller2.print(0,0,"D: %f", distfeet);
    // pros::c::task_delay(50);
     //pros::c::task_delay(50);
@@ -427,8 +431,33 @@ void autonomous() {
    Move chassis -47 inches
    Turn Turret -135 
    Launch expansion
+
   */
-   chassis_controller->moveDistance(12*okapi::inch);
+  
+  chassis_controller->moveDistance(-3*okapi::inch);
+  pros::delay(1000);
+  rollerMotor.move_relative(-180,127);
+  pros::delay(2000);
+  //chassis_controller->moveDistance(3*okapi::inch);
+  
+  //rightFrontMotor.move_relative(900,127);
+  //pros::delay(2000);
+
+  //expansion.set_value(true);
+  //pros::delay(1000);
+  //expansion.set_value(false);
+  //indexer.set_value(true);
+  //pros::delay(250);
+  //indexer.set_value(false);
+  //
+  //pros::delay(1250);
+  //pros::delay(42000);
+  
+  //chassis_controller->moveDistance(16*okapi::inch);
+  //rightFrontMotor.move_relative(720,127);
+  //chassis_controller->moveDistance(4*okapi::inch); 
+
+ 
 
   //turretMotor.move_voltage(6000);
   //while(!(89 < turretSensor.get_rotation()) && !(91 > turretSensor.get_rotation())) {
@@ -533,6 +562,7 @@ void opcontrol() {
   pros::ADIDigitalOut indexer (indexer_PORT);
   pros::Motor flyWheel (flyWheel_PORT);
   pros::ADIGyro EXT_GyroTurret ({{expander_PORT,EXT_GyroTurretPort}});
+  pros::Motor rollerMotor (rollerMotor_PORT);
   //pros::Task my_task2(displayThread);
   float curve = 0.25;
   float left;
@@ -555,8 +585,8 @@ void opcontrol() {
     leftBackMotor.move(left);
     rightFrontMotor.move(right);
     rightBackMotor.move(right);
-    //turretMotor.move(100*(((1-curve)*turretMove)/100+(curve*pow(turretMove/100,7))));
-    turretMotor.move_voltage(varChange);
+    turretMotor.move(turretMove);
+    //turretMotor.move_voltage(varChange);
     intake.move(controller2.get_analog(ANALOG_LEFT_Y));
     //controller2.clear();
     //pros::delay(50);
@@ -566,9 +596,6 @@ void opcontrol() {
     //vFinal = sqrt(abs((0.5*discMass*pow(discSpeed,2))/(0.5*massTotal)-(0.5*springForce*flyWheelCompression)/(0.5*massTotal)));
     //flywheelRPM = ((vFinal*60)/(2*M_PI*flyWheelRadius))/18;
     //flywheelVelocity = ((ejectVelocity*60)/(2*M_PI*flyWheelRadius*sqrt(discInertia/(flyWheelInertia+flyWheelInertialIncrease))))/flyWheelGearRatio;
-     if (controller1.get_digital(DIGITAL_B)) {
-      turretMotor.move_relative(360,100);
-    }
 
 
     if (controller2.get_digital(DIGITAL_B)) {
@@ -578,6 +605,16 @@ void opcontrol() {
       indexer.set_value(true);
       pros::delay(250);
       indexer.set_value(false);
+    }
+    if (controller2.get_digital(DIGITAL_L2)) {
+      rollerMotor.move_velocity(100);
+      pros::delay(400);
+      rollerMotor.move_velocity(0);
+    }
+    if (controller2.get_digital(DIGITAL_L1)) {
+      rollerMotor.move_velocity(-100);
+      pros::delay(400);
+      rollerMotor.move_velocity(0);
     }
     
 
@@ -589,13 +626,13 @@ void opcontrol() {
     //pros::c::task_delay(50); 
     //controller1.print(0,0,"V: %f",varChange);
     //pros::c::task_delay(50);
-    if (controller1.get_digital(DIGITAL_UP)) {
-      varChange = varChange+10;
-      //pros::delay(50);
+    if (controller2.get_digital(DIGITAL_UP)) {
+      distfeet = distfeet+10;
+      pros::delay(50);
     }
-    if (controller1.get_digital(DIGITAL_DOWN)) {
-      varChange = varChange-10;
-     // pros::delay(50);
+    if (controller2.get_digital(DIGITAL_DOWN)) {
+      distfeet = distfeet-10;
+      pros::delay(50);
     } 
     pros::delay(50);
   }
